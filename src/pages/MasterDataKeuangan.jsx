@@ -57,38 +57,49 @@ const MasterDataKeuangan = () => {
     reloadData();
   };
 
-  // Mapping Saldo Dana — same restricted-fund calculation used in LaporanPSAK45.jsx, kept in sync
-  const totalRevenueUnrestricted = data.penerimaan
-    .filter(p => p.status === 'PAID' && (p.coa.startsWith('401.07') || p.coa.startsWith('401.01') || p.coa.startsWith('401.04')))
-    .reduce((sum, p) => sum + p.nominal, 0);
-  const totalExpenseUnrestricted = data.pengeluaran
-    .filter(p => p.status === 'PAID')
-    .reduce((sum, p) => sum + p.nominal, 0);
-  const totalRevenueRestricted = data.penerimaan
-    .filter(p => p.status === 'PAID' && (p.coa.startsWith('401.02') || p.coa.startsWith('401.05') || p.coa.startsWith('401.08')))
-    .reduce((sum, p) => sum + p.nominal, 0);
+  // Mapping Saldo Dana — same PSAK 109/409 fund movement calculation used in LaporanPSAK409.jsx, kept in sync
+  const movement = (coaList, isRevenue) => coaList.reduce((sum, coa) => {
+    const debit = data.pengeluaran.filter(p => p.coa === coa && p.status === 'PAID').reduce((s, p) => s + p.nominal, 0)
+      + data.jurnalPenyesuaian.filter(a => a.coa_debet === coa).reduce((s, a) => s + a.nominal, 0);
+    const credit = data.penerimaan.filter(p => p.coa === coa && p.status === 'PAID').reduce((s, p) => s + p.nominal, 0)
+      + data.jurnalPenyesuaian.filter(a => a.coa_kredit === coa).reduce((s, a) => s + a.nominal, 0);
+    return sum + (isRevenue ? credit - debit : debit - credit);
+  }, 0);
+
+  const zakatNet = movement(['401.05.001.000'], true) - movement(['501.05.000.000'], false);
+  const infakNet = movement(['401.01.001.000', '401.02.001.000', '401.04.001.000', '401.08.001.000', '401.09.001.000'], true)
+    - movement(['501.01.000.000', '501.02.000.000', '501.03.000.000'], false);
+  const amilNet = movement(['401.07.001.000'], true)
+    - movement(['502.01.000.000', '502.03.000.000', '502.04.000.000', '502.05.000.000'], false);
 
   const danaMapping = [
     {
       coa: '300.06.000.000',
-      kategori: 'Tidak Terikat (Unrestricted)',
-      mappingPenerimaan: '401.01, 401.04, 401.07',
-      mappingPengeluaran: 'Seluruh 5xx (beban operasional)',
-      saldo: 100000000 + totalRevenueUnrestricted - totalExpenseUnrestricted
+      kategori: 'Dana Zakat',
+      mappingPenerimaan: '401.05',
+      mappingPengeluaran: '501.05 (Penyaluran Zakat)',
+      saldo: 80000000 + zakatNet
     },
     {
       coa: '300.07.000.000',
-      kategori: 'Terikat Sementara (Temporarily Restricted)',
-      mappingPenerimaan: '401.02, 401.05, 401.08',
-      mappingPengeluaran: 'Direalisasikan sesuai program terikat',
-      saldo: 200000000 + totalRevenueRestricted
+      kategori: 'Dana Infak/Sedekah',
+      mappingPenerimaan: '401.01, 401.02, 401.04, 401.08, 401.09',
+      mappingPengeluaran: '501.01, 501.02, 501.03',
+      saldo: 220000000 + infakNet
     },
     {
       coa: '300.08.000.000',
-      kategori: 'Terikat Permanen (Wakaf/Endowment)',
-      mappingPenerimaan: 'Wakaf & Endowment',
-      mappingPengeluaran: 'Tidak boleh direalisasikan (pokok abadi)',
-      saldo: 50000000
+      kategori: 'Dana Amil',
+      mappingPenerimaan: '401.07 (termasuk reklasifikasi Hak Amil)',
+      mappingPengeluaran: 'Seluruh 502.xx (beban operasional)',
+      saldo: 30000000 + amilNet
+    },
+    {
+      coa: '300.09.000.000',
+      kategori: 'Dana Non Halal',
+      mappingPenerimaan: 'Belum ada COA tercatat',
+      mappingPengeluaran: '-',
+      saldo: 0
     }
   ];
 
@@ -97,7 +108,7 @@ const MasterDataKeuangan = () => {
       <div className="page-header">
         <div className="page-title">
           <h1>Master Data Keuangan</h1>
-          <p>Konfigurasi Chart of Accounts (COA), data bank organisasi, rekening kas, dan mapping dana PSAK 45</p>
+          <p>Konfigurasi Chart of Accounts (COA), data bank organisasi, rekening kas, dan mapping dana PSAK 409</p>
         </div>
         {activeTab === 'Bank & Rekening' && (
           <div>

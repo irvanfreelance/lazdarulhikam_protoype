@@ -22,6 +22,7 @@ import LaporanSDM from './pages/LaporanSDM';
 import AuditTrail from './pages/AuditTrail';
 import RekonsiliasiBank from './pages/RekonsiliasiBank';
 import MonitoringSistem from './pages/MonitoringSistem';
+import LaporanPSAK409 from './pages/LaporanPSAK409';
 import DashboardCrowdfunding from './pages/DashboardCrowdfunding';
 import KampanyeList from './pages/KampanyeList';
 import ComingSoon from './pages/ComingSoon';
@@ -94,8 +95,8 @@ function App() {
           return <PengaturanLaporan />;
         case 'Periode Akuntansi':
           return <PeriodeAkuntansi />;
-        case 'Laporan PSAK 45':
-          return <LaporanPSAK45 />;
+        case 'Laporan PSAK 409':
+          return <LaporanPSAK409 />;
         case 'Laporan Donasi':
           return <LaporanDonasi />;
         case 'Laporan Operasional':
