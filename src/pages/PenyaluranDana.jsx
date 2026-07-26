@@ -387,8 +387,14 @@ const PenyaluranDana = () => {
                     <td style={{ textTransform: 'capitalize' }}>{b.status_ekonomi.replace('_', ' ')}</td>
                     <td>{b.kelurahan}, {b.kecamatan}, {b.kabupaten}</td>
                     <td>
-                      <span className={`status-badge ${b.status_verifikasi === 'verified' ? 'status-success' : 'status-warning'}`}>
-                        {b.status_verifikasi === 'verified' ? 'TERVERIFIKASI' : 'UNVERIFIED'}
+                      <span className={`status-badge ${
+                        b.status_verifikasi === 'verified' ? 'status-success' :
+                        b.status_verifikasi === 'rejected' ? 'status-danger' :
+                        b.status_verifikasi === 'survey_ulang' ? 'status-info' : 'status-warning'
+                      }`}>
+                        {b.status_verifikasi === 'verified' ? 'LAYAK DIBANTU' :
+                         b.status_verifikasi === 'rejected' ? 'TIDAK LAYAK' :
+                         b.status_verifikasi === 'survey_ulang' ? 'PERLU SURVEY' : 'BELUM DIVERIFIKASI'}
                       </span>
                     </td>
                   </tr>
