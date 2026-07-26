@@ -3,6 +3,7 @@ import {
   Activity, MonitorCheck, RefreshCw, Search
 } from 'lucide-react';
 import { getAccountingData, formatRupiah, updateAccountingData } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const MonitoringSistem = () => {
   const [activeTab, setActiveTab] = useState('Upstash Events');
@@ -243,16 +244,16 @@ const MonitoringSistem = () => {
                 </p>
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Periode yang Akan Ditutup:</label>
-                  <select
-                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px' }}
-                    value={selectedPeriodId}
-                    onChange={e => setSelectedPeriodId(e.target.value)}
-                  >
-                    {openPeriods.length === 0 && <option value="">Tidak ada periode terbuka</option>}
-                    {openPeriods.map(p => (
-                      <option key={p.id} value={p.id}>{p.nama_periode}</option>
-                    ))}
-                  </select>
+                  <div style={{ marginBottom: '16px' }}>
+                    <SearchableSelect
+                      className="form-select"
+                      options={openPeriods.length === 0
+                        ? [{ value: '', label: 'Tidak ada periode terbuka' }]
+                        : openPeriods.map(p => ({ value: p.id, label: p.nama_periode }))}
+                      value={selectedPeriodId}
+                      onChange={setSelectedPeriodId}
+                    />
+                  </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <input type="checkbox" id="depreciation" checked={generateDepreciation} onChange={e => setGenerateDepreciation(e.target.checked)} />
@@ -277,14 +278,15 @@ const MonitoringSistem = () => {
                 </p>
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Tahun yang Akan Ditutup:</label>
-                  <select
-                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  <SearchableSelect
+                    className="form-select"
+                    options={[
+                      { value: '2026', label: '2026' },
+                      { value: '2027', label: '2027' }
+                    ]}
                     value={selectedYear}
-                    onChange={e => setSelectedYear(e.target.value)}
-                  >
-                    <option value="2026">2026</option>
-                    <option value="2027">2027</option>
-                  </select>
+                    onChange={setSelectedYear}
+                  />
                 </div>
                 <button
                   className="btn btn-primary"

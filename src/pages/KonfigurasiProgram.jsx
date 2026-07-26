@@ -3,6 +3,7 @@ import {
   Settings, Users, Landmark, Search, Plus, CheckCircle, HelpCircle
 } from 'lucide-react';
 import { getAccountingData, formatRupiah, updateAccountingData, COAS_ALL } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const KonfigurasiProgram = () => {
   const [activeTab, setActiveTab] = useState('COA per Campaign');
@@ -251,13 +252,15 @@ const KonfigurasiProgram = () => {
               </div>
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>COA Anggaran</label>
-                <select required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                  value={formFields.coa || ''} onChange={e => setFormFields({ ...formFields, coa: e.target.value })}>
-                  <option value="">-- Pilih COA --</option>
-                  {Object.entries(COAS_ALL).map(([coa, label]) => (
-                    <option key={coa} value={coa}>{label}</option>
-                  ))}
-                </select>
+                <SearchableSelect
+                  className="form-select"
+                  options={[
+                    { value: '', label: '-- Pilih COA --' },
+                    ...Object.entries(COAS_ALL).map(([coa, label]) => ({ value: coa, label }))
+                  ]}
+                  value={formFields.coa || ''}
+                  onChange={val => setFormFields({ ...formFields, coa: val })}
+                />
               </div>
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Budget (Rp)</label>
@@ -290,11 +293,15 @@ const KonfigurasiProgram = () => {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Kategori</label>
-                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                    value={formFields.kategori || 'individu'} onChange={e => setFormFields({ ...formFields, kategori: e.target.value })}>
-                    <option value="individu">Individu</option>
-                    <option value="lembaga">Lembaga</option>
-                  </select>
+                  <SearchableSelect
+                    className="form-select"
+                    options={[
+                      { value: 'individu', label: 'Individu' },
+                      { value: 'lembaga', label: 'Lembaga' }
+                    ]}
+                    value={formFields.kategori || 'individu'}
+                    onChange={val => setFormFields({ ...formFields, kategori: val })}
+                  />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
@@ -305,12 +312,16 @@ const KonfigurasiProgram = () => {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Status Ekonomi</label>
-                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                    value={formFields.status_ekonomi || 'miskin'} onChange={e => setFormFields({ ...formFields, status_ekonomi: e.target.value })}>
-                    <option value="sangat_miskin">Sangat Miskin</option>
-                    <option value="miskin">Miskin</option>
-                    <option value="lainnya">Lainnya</option>
-                  </select>
+                  <SearchableSelect
+                    className="form-select"
+                    options={[
+                      { value: 'sangat_miskin', label: 'Sangat Miskin' },
+                      { value: 'miskin', label: 'Miskin' },
+                      { value: 'lainnya', label: 'Lainnya' }
+                    ]}
+                    value={formFields.status_ekonomi || 'miskin'}
+                    onChange={val => setFormFields({ ...formFields, status_ekonomi: val })}
+                  />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
@@ -366,17 +377,21 @@ const KonfigurasiProgram = () => {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Kategori</label>
-                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                    value={formFields.kategori || 'barang'} onChange={e => setFormFields({ ...formFields, kategori: e.target.value })}>
-                    <option value="barang">Barang</option>
-                    <option value="jasa">Jasa</option>
-                    <option value="media">Media</option>
-                    <option value="konsultan">Konsultan</option>
-                    <option value="peternak">Peternak</option>
-                    <option value="catering">Catering</option>
-                    <option value="logistik">Logistik</option>
-                    <option value="lainnya">Lainnya</option>
-                  </select>
+                  <SearchableSelect
+                    className="form-select"
+                    options={[
+                      { value: 'barang', label: 'Barang' },
+                      { value: 'jasa', label: 'Jasa' },
+                      { value: 'media', label: 'Media' },
+                      { value: 'konsultan', label: 'Konsultan' },
+                      { value: 'peternak', label: 'Peternak' },
+                      { value: 'catering', label: 'Catering' },
+                      { value: 'logistik', label: 'Logistik' },
+                      { value: 'lainnya', label: 'Lainnya' }
+                    ]}
+                    value={formFields.kategori || 'barang'}
+                    onChange={val => setFormFields({ ...formFields, kategori: val })}
+                  />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>

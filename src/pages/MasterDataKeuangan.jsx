@@ -3,6 +3,7 @@ import {
   Database, Plus, Search, FolderTree, Landmark, Settings
 } from 'lucide-react';
 import { getAccountingData, formatRupiah, updateAccountingData, COAS_ALL } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const MasterDataKeuangan = () => {
   const [activeTab, setActiveTab] = useState('Chart of Accounts');
@@ -338,11 +339,15 @@ const MasterDataKeuangan = () => {
             <form onSubmit={handleSaveKurs}>
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Mata Uang</label>
-                <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                  value={formFields.mata_uang || 'USD'} onChange={e => setFormFields({ ...formFields, mata_uang: e.target.value })}>
-                  <option value="USD">USD (Dolar AS)</option>
-                  <option value="EUR">EUR (Euro)</option>
-                </select>
+                <SearchableSelect
+                  className="form-select"
+                  options={[
+                    { value: 'USD', label: 'USD (Dolar AS)' },
+                    { value: 'EUR', label: 'EUR (Euro)' }
+                  ]}
+                  value={formFields.mata_uang || 'USD'}
+                  onChange={val => setFormFields({ ...formFields, mata_uang: val })}
+                />
               </div>
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Kurs (IDR)</label>

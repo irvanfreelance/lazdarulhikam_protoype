@@ -3,6 +3,7 @@ import {
   CreditCard, RefreshCw, Plus, Search, CheckCircle, ArrowRight
 } from 'lucide-react';
 import { getAccountingData, formatRupiah, executeInternalTransferAction, updateAccountingData, payPurchaseOrderAction } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const HutangPiutang = () => {
   const [activeTab, setActiveTab] = useState('Hutang Usaha');
@@ -290,21 +291,29 @@ const HutangPiutang = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Dari Rekening</label>
-                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                    value={formFields.dari_rekening_id} onChange={e => setFormFields({...formFields, dari_rekening_id: e.target.value})}>
-                    <option value="101.02.004.000">E-Wallet Xendit</option>
-                    <option value="101.02.006.000">QRIS Settlement</option>
-                    <option value="101.02.001.000">BCA — Transfer Manual</option>
-                  </select>
+                  <SearchableSelect
+                    className="form-select"
+                    options={[
+                      { value: '101.02.004.000', label: 'E-Wallet Xendit' },
+                      { value: '101.02.006.000', label: 'QRIS Settlement' },
+                      { value: '101.02.001.000', label: 'BCA — Transfer Manual' }
+                    ]}
+                    value={formFields.dari_rekening_id}
+                    onChange={val => setFormFields({...formFields, dari_rekening_id: val})}
+                  />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Ke Rekening</label>
-                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                    value={formFields.ke_rekening_id} onChange={e => setFormFields({...formFields, ke_rekening_id: e.target.value})}>
-                    <option value="101.02.001.000">BCA — Transfer Manual</option>
-                    <option value="101.02.002.000">Mandiri — Transfer Manual</option>
-                    <option value="101.01.001.000">Kas Pusat</option>
-                  </select>
+                  <SearchableSelect
+                    className="form-select"
+                    options={[
+                      { value: '101.02.001.000', label: 'BCA — Transfer Manual' },
+                      { value: '101.02.002.000', label: 'Mandiri — Transfer Manual' },
+                      { value: '101.01.001.000', label: 'Kas Pusat' }
+                    ]}
+                    value={formFields.ke_rekening_id}
+                    onChange={val => setFormFields({...formFields, ke_rekening_id: val})}
+                  />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>

@@ -3,6 +3,7 @@ import {
   Users, Calendar, CheckSquare, Search, Plus, DollarSign, Eye, ShieldCheck
 } from 'lucide-react';
 import { getAccountingData, formatRupiah, disbursePayrollAction, updateAccountingData } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const PTKP_OPTIONS = ['TK/0', 'TK/1', 'K/0', 'K/1', 'K/2', 'K/3'];
 
@@ -271,10 +272,12 @@ const SDMPenggajian = () => {
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>PTKP</label>
-                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                    value={formFields.ptkp || 'TK/0'} onChange={e => setFormFields({ ...formFields, ptkp: e.target.value })}>
-                    {PTKP_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
+                  <SearchableSelect
+                    className="form-select"
+                    options={PTKP_OPTIONS.map(p => ({ value: p, label: p }))}
+                    value={formFields.ptkp || 'TK/0'}
+                    onChange={val => setFormFields({ ...formFields, ptkp: val })}
+                  />
                 </div>
               </div>
               <div style={{ marginBottom: '14px' }}>

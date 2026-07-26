@@ -5,6 +5,7 @@ import {
 import {
   getAccountingData, payExpenseAction, disburseCashAdvanceAction, settleCashAdvanceAction, payPurchaseOrderAction, updateAccountingData, formatRupiah
 } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const KAS_KECIL_COA = '101.01.002.000';
 
@@ -478,11 +479,15 @@ const PengeluaranOps = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Jenis</label>
-                      <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                        value={formFields.jenis} onChange={e => setFormFields({...formFields, jenis: e.target.value})}>
-                        <option value="reimbursement">Reimbursement</option>
-                        <option value="pembayaran_langsung">Pembayaran Langsung</option>
-                      </select>
+                      <SearchableSelect
+                        className="form-select"
+                        options={[
+                          { value: 'reimbursement', label: 'Reimbursement' },
+                          { value: 'pembayaran_langsung', label: 'Pembayaran Langsung' }
+                        ]}
+                        value={formFields.jenis}
+                        onChange={val => setFormFields({...formFields, jenis: val})}
+                      />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Total Nominal (Rp)</label>
@@ -493,19 +498,27 @@ const PengeluaranOps = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>COA Debet</label>
-                      <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                        value={formFields.coa_debet} onChange={e => setFormFields({...formFields, coa_debet: e.target.value})}>
-                        <option value="502.03.000.000">502.03 (Beban Ops Kantor)</option>
-                        <option value="502.01.000.000">502.01 (Biaya PG Platform)</option>
-                      </select>
+                      <SearchableSelect
+                        className="form-select"
+                        options={[
+                          { value: '502.03.000.000', label: '502.03 (Beban Ops Kantor)' },
+                          { value: '502.01.000.000', label: '502.01 (Biaya PG Platform)' }
+                        ]}
+                        value={formFields.coa_debet}
+                        onChange={val => setFormFields({...formFields, coa_debet: val})}
+                      />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>COA Kredit (Rek Pembayar)</label>
-                      <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                        value={formFields.coa_kredit} onChange={e => setFormFields({...formFields, coa_kredit: e.target.value})}>
-                        <option value="101.02.001.000">101.02.001 (BCA)</option>
-                        <option value="101.01.001.000">101.01.001 (Kas Pusat)</option>
-                      </select>
+                      <SearchableSelect
+                        className="form-select"
+                        options={[
+                          { value: '101.02.001.000', label: '101.02.001 (BCA)' },
+                          { value: '101.01.001.000', label: '101.01.001 (Kas Pusat)' }
+                        ]}
+                        value={formFields.coa_kredit}
+                        onChange={val => setFormFields({...formFields, coa_kredit: val})}
+                      />
                     </div>
                   </div>
                 </>
@@ -515,15 +528,15 @@ const PengeluaranOps = () => {
                 <>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Staf Penerima Uang Muka</label>
-                    <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                      value={formFields.nik_staf} onChange={e => {
-                        const emp = data.employees.find(emp => emp.nik === e.target.value);
-                        setFormFields({...formFields, nik_staf: e.target.value, nama_staf: emp ? emp.nama : ''});
-                      }}>
-                      {data.employees.map(emp => (
-                        <option key={emp.nik} value={emp.nik}>{emp.nama} ({emp.nik})</option>
-                      ))}
-                    </select>
+                    <SearchableSelect
+                      className="form-select"
+                      options={data.employees.map(emp => ({ value: emp.nik, label: `${emp.nama} (${emp.nik})` }))}
+                      value={formFields.nik_staf}
+                      onChange={val => {
+                        const emp = data.employees.find(emp => emp.nik === val);
+                        setFormFields({...formFields, nik_staf: val, nama_staf: emp ? emp.nama : ''});
+                      }}
+                    />
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                     <div>
@@ -549,12 +562,12 @@ const PengeluaranOps = () => {
                 <>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Vendor / Supplier</label>
-                    <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                      value={formFields.vendor_id} onChange={e => setFormFields({...formFields, vendor_id: e.target.value})}>
-                      {data.vendors.map(v => (
-                        <option key={v.id} value={v.id}>{v.nama_vendor}</option>
-                      ))}
-                    </select>
+                    <SearchableSelect
+                      className="form-select"
+                      options={data.vendors.map(v => ({ value: v.id, label: v.nama_vendor }))}
+                      value={formFields.vendor_id}
+                      onChange={val => setFormFields({...formFields, vendor_id: val})}
+                    />
                   </div>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Judul PO / Pembelian</label>

@@ -3,6 +3,7 @@ import {
   Send, Users, FileCheck, Image, Search, Plus, Filter, Eye, CheckCircle, XCircle, Trash2, X, Download
 } from 'lucide-react';
 import { getAccountingData, disburseRequestAction, updateAccountingData, formatRupiah } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const PenyaluranDana = () => {
   const [activeTab, setActiveTab] = useState('Pengajuan');
@@ -269,12 +270,17 @@ const PenyaluranDana = () => {
           {activeTab === 'Pengajuan' && (
             <div className="filter-input">
               <Filter size={16} />
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-                <option>Semua Status</option>
-                <option value="draft">Draft / Dikirim</option>
-                <option value="approved">Disetujui</option>
-                <option value="disbursed">Dicairkan (Disbursed)</option>
-              </select>
+              <SearchableSelect
+                className=""
+                options={[
+                  { value: 'Semua Status', label: 'Semua Status' },
+                  { value: 'draft', label: 'Draft / Dikirim' },
+                  { value: 'approved', label: 'Disetujui' },
+                  { value: 'disbursed', label: 'Dicairkan (Disbursed)' }
+                ]}
+                value={filterStatus}
+                onChange={setFilterStatus}
+              />
             </div>
           )}
         </div>
@@ -509,15 +515,13 @@ const PenyaluranDana = () => {
                 <>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Pengajuan Penyaluran (yang sudah dicairkan)</label>
-                    <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                      value={formFields.disbursement_id || ''} onChange={e => setFormFields({...formFields, disbursement_id: e.target.value})}>
-                      {data.disbursementRequests.filter(r => r.status === 'disbursed').length === 0 && (
-                        <option value="">Belum ada penyaluran yang dicairkan</option>
-                      )}
-                      {data.disbursementRequests.filter(r => r.status === 'disbursed').map(r => (
-                        <option key={r.id} value={r.id}>{r.judul}</option>
-                      ))}
-                    </select>
+                    <SearchableSelect
+                      className="form-select"
+                      options={data.disbursementRequests.filter(r => r.status === 'disbursed').map(r => ({ value: r.id, label: r.judul }))}
+                      value={formFields.disbursement_id || ''}
+                      onChange={val => setFormFields({...formFields, disbursement_id: val})}
+                      placeholder="Belum ada penyaluran yang dicairkan"
+                    />
                   </div>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Keterangan</label>
@@ -539,33 +543,41 @@ const PenyaluranDana = () => {
                   </div>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Kampanye / Campaign</label>
-                    <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                      value={formFields.campaign_id} onChange={e => setFormFields({...formFields, campaign_id: e.target.value})}>
-                      <option value="1">Bantuan Darurat Bencana Banjir</option>
-                      <option value="2">Pembangunan Masjid Pelosok</option>
-                      <option value="3">Beasiswa Santri Tahfidz</option>
-                      <option value="4">Wakaf Sumur Air Bersih</option>
-                      <option value="5">Operasional Panti Asuhan</option>
-                    </select>
+                    <SearchableSelect
+                      className="form-select"
+                      options={[
+                        { value: '1', label: 'Bantuan Darurat Bencana Banjir' },
+                        { value: '2', label: 'Pembangunan Masjid Pelosok' },
+                        { value: '3', label: 'Beasiswa Santri Tahfidz' },
+                        { value: '4', label: 'Wakaf Sumur Air Bersih' },
+                        { value: '5', label: 'Operasional Panti Asuhan' }
+                      ]}
+                      value={formFields.campaign_id}
+                      onChange={val => setFormFields({...formFields, campaign_id: val})}
+                    />
                   </div>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Penerima Manfaat</label>
-                    <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                      value={formFields.beneficiary_id} onChange={e => setFormFields({...formFields, beneficiary_id: e.target.value})}>
-                      {data.beneficiaries.map(b => (
-                        <option key={b.id} value={b.id}>{b.nama_lengkap} ({b.kode_beneficiary})</option>
-                      ))}
-                    </select>
+                    <SearchableSelect
+                      className="form-select"
+                      options={data.beneficiaries.map(b => ({ value: b.id, label: `${b.nama_lengkap} (${b.kode_beneficiary})` }))}
+                      value={formFields.beneficiary_id}
+                      onChange={val => setFormFields({...formFields, beneficiary_id: val})}
+                    />
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Jenis Penyaluran</label>
-                      <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                        value={formFields.jenis_penyaluran} onChange={e => setFormFields({...formFields, jenis_penyaluran: e.target.value})}>
-                        <option value="transfer">Transfer Bank</option>
-                        <option value="tunai">Kas Tunai</option>
-                        <option value="barang">Sembako / Barang</option>
-                      </select>
+                      <SearchableSelect
+                        className="form-select"
+                        options={[
+                          { value: 'transfer', label: 'Transfer Bank' },
+                          { value: 'tunai', label: 'Kas Tunai' },
+                          { value: 'barang', label: 'Sembako / Barang' }
+                        ]}
+                        value={formFields.jenis_penyaluran}
+                        onChange={val => setFormFields({...formFields, jenis_penyaluran: val})}
+                      />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Jumlah Diajukan (Rp)</label>
@@ -576,22 +588,30 @@ const PenyaluranDana = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>COA Debet (Beban)</label>
-                      <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                        value={formFields.coa_debet} onChange={e => setFormFields({...formFields, coa_debet: e.target.value})}>
-                        <option value="501.01.000.000">501.01 (Penyaluran Kesehatan)</option>
-                        <option value="501.02.000.000">501.02 (Penyaluran Kemanusiaan)</option>
-                        <option value="501.03.000.000">501.03 (Penyaluran Pangan)</option>
-                        <option value="501.05.000.000">501.05 (Penyaluran Zakat)</option>
-                      </select>
+                      <SearchableSelect
+                        className="form-select"
+                        options={[
+                          { value: '501.01.000.000', label: '501.01 (Penyaluran Kesehatan)' },
+                          { value: '501.02.000.000', label: '501.02 (Penyaluran Kemanusiaan)' },
+                          { value: '501.03.000.000', label: '501.03 (Penyaluran Pangan)' },
+                          { value: '501.05.000.000', label: '501.05 (Penyaluran Zakat)' }
+                        ]}
+                        value={formFields.coa_debet}
+                        onChange={val => setFormFields({...formFields, coa_debet: val})}
+                      />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>COA Kredit (Bank)</label>
-                      <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                        value={formFields.coa_kredit} onChange={e => setFormFields({...formFields, coa_kredit: e.target.value})}>
-                        <option value="101.02.001.000">101.02.001 (BCA)</option>
-                        <option value="101.02.002.000">101.02.002 (Mandiri)</option>
-                        <option value="101.01.001.000">101.01.001 (Kas Pusat)</option>
-                      </select>
+                      <SearchableSelect
+                        className="form-select"
+                        options={[
+                          { value: '101.02.001.000', label: '101.02.001 (BCA)' },
+                          { value: '101.02.002.000', label: '101.02.002 (Mandiri)' },
+                          { value: '101.01.001.000', label: '101.01.001 (Kas Pusat)' }
+                        ]}
+                        value={formFields.coa_kredit}
+                        onChange={val => setFormFields({...formFields, coa_kredit: val})}
+                      />
                     </div>
                   </div>
                 </>
@@ -610,12 +630,16 @@ const PenyaluranDana = () => {
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Kategori</label>
-                      <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                        value={formFields.kategori} onChange={e => setFormFields({...formFields, kategori: e.target.value})}>
-                        <option value="individu">Individu</option>
-                        <option value="keluarga">Keluarga</option>
-                        <option value="lembaga">Lembaga</option>
-                      </select>
+                      <SearchableSelect
+                        className="form-select"
+                        options={[
+                          { value: 'individu', label: 'Individu' },
+                          { value: 'keluarga', label: 'Keluarga' },
+                          { value: 'lembaga', label: 'Lembaga' }
+                        ]}
+                        value={formFields.kategori}
+                        onChange={val => setFormFields({...formFields, kategori: val})}
+                      />
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>

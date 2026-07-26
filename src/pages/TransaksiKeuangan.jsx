@@ -669,30 +669,36 @@ const TransaksiKeuangan = () => {
           {activeTab === 'Penerimaan' && (
             <div className="filter-input">
               <Filter size={16} />
-              <select value={filterChannel} onChange={e => setFilterChannel(e.target.value)}>
-                <option>Semua Channel</option>
-                {CHANNELS.map(ch => <option key={ch} value={ch}>{ch}</option>)}
-              </select>
+              <SearchableSelect
+                className=""
+                options={['Semua Channel', ...CHANNELS].map(ch => ({ value: ch, label: ch }))}
+                value={filterChannel}
+                onChange={setFilterChannel}
+              />
             </div>
           )}
 
           {activeTab === 'Pengeluaran' && (
             <div className="filter-input">
               <Filter size={16} />
-              <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-                <option>Semua Kategori</option>
-                {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
+              <SearchableSelect
+                className=""
+                options={['Semua Kategori', ...CATEGORIES].map(cat => ({ value: cat, label: cat }))}
+                value={filterCategory}
+                onChange={setFilterCategory}
+              />
             </div>
           )}
 
           {activeTab === 'Jurnal Umum' && (
             <div className="filter-input">
               <Filter size={16} />
-              <select value={filterPeriod} onChange={e => setFilterPeriod(e.target.value)}>
-                <option>Semua Periode</option>
-                {PERIODS.map(pd => <option key={pd} value={pd}>{pd}</option>)}
-              </select>
+              <SearchableSelect
+                className=""
+                options={['Semua Periode', ...PERIODS].map(pd => ({ value: pd, label: pd }))}
+                value={filterPeriod}
+                onChange={setFilterPeriod}
+              />
             </div>
           )}
         </div>
@@ -1068,14 +1074,15 @@ const TransaksiKeuangan = () => {
                     </div>
                     <div className="form-group">
                       <label>Status</label>
-                      <select 
+                      <SearchableSelect
                         className="form-select"
+                        options={[
+                          { value: 'PAID', label: 'PAID (Lunas)' },
+                          { value: 'PENDING', label: 'PENDING (Draft)' }
+                        ]}
                         value={formFields.status || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, status: e.target.value }))}
-                      >
-                        <option value="PAID">PAID (Lunas)</option>
-                        <option value="PENDING">PENDING (Draft)</option>
-                      </select>
+                        onChange={val => setFormFields(prev => ({ ...prev, status: val }))}
+                      />
                     </div>
                     {formFields.coa?.startsWith('401.05') && modalType === 'penerimaan_add' && (
                       <div className="form-group full-width" style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1130,39 +1137,34 @@ const TransaksiKeuangan = () => {
                     </div>
                     <div className="form-group">
                       <label>Kategori Vendor</label>
-                      <select 
+                      <SearchableSelect
                         className="form-select"
+                        options={CATEGORIES.map(cat => ({ value: cat, label: cat }))}
                         value={formFields.kategori || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, kategori: e.target.value }))}
-                      >
-                        {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                      </select>
+                        onChange={val => setFormFields(prev => ({ ...prev, kategori: val }))}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Sumber Dana Keluar (Kas/Bank)</label>
-                      <select 
+                      <SearchableSelect
                         className="form-select"
-                        value={formFields.coa_bayar || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, coa_bayar: e.target.value }))}
-                      >
-                        {Object.entries(COAS_ALL)
+                        options={Object.entries(COAS_ALL)
                           .filter(([key]) => key.startsWith('101.01') || key.startsWith('101.02'))
-                          .map(([key, val]) => <option key={key} value={key}>{val}</option>)
-                        }
-                      </select>
+                          .map(([key, val]) => ({ value: key, label: val }))}
+                        value={formFields.coa_bayar || ''}
+                        onChange={val => setFormFields(prev => ({ ...prev, coa_bayar: val }))}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Akun Pengeluaran (COA)</label>
-                      <select 
+                      <SearchableSelect
                         className="form-select"
-                        value={formFields.coa || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, coa: e.target.value }))}
-                      >
-                        {Object.entries(COAS_ALL)
+                        options={Object.entries(COAS_ALL)
                           .filter(([key]) => key.startsWith('501') || key.startsWith('502'))
-                          .map(([key, val]) => <option key={key} value={key}>{val}</option>)
-                        }
-                      </select>
+                          .map(([key, val]) => ({ value: key, label: val }))}
+                        value={formFields.coa || ''}
+                        onChange={val => setFormFields(prev => ({ ...prev, coa: val }))}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Nominal (Rp)</label>
@@ -1178,14 +1180,15 @@ const TransaksiKeuangan = () => {
                     </div>
                     <div className="form-group">
                       <label>Status</label>
-                      <select 
+                      <SearchableSelect
                         className="form-select"
+                        options={[
+                          { value: 'PAID', label: 'PAID (Disbursed)' },
+                          { value: 'PENDING', label: 'PENDING (Draft)' }
+                        ]}
                         value={formFields.status || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, status: e.target.value }))}
-                      >
-                        <option value="PAID">PAID (Disbursed)</option>
-                        <option value="PENDING">PENDING (Draft)</option>
-                      </select>
+                        onChange={val => setFormFields(prev => ({ ...prev, status: val }))}
+                      />
                     </div>
                     <div className="form-group full-width">
                       <label>Catatan Detail</label>
@@ -1205,47 +1208,39 @@ const TransaksiKeuangan = () => {
                   <div className="form-grid">
                     <div className="form-group">
                       <label>Periode Akuntansi</label>
-                      <select 
+                      <SearchableSelect
                         className="form-select"
+                        options={PERIODS.map(pd => ({ value: pd, label: pd }))}
                         value={formFields.period || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, period: e.target.value }))}
-                      >
-                        {PERIODS.map(pd => <option key={pd} value={pd}>{pd}</option>)}
-                      </select>
+                        onChange={val => setFormFields(prev => ({ ...prev, period: val }))}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Jenis Penyesuaian (AJE)</label>
-                      <select 
+                      <SearchableSelect
                         className="form-select"
+                        options={AJE_TYPES.map(type => ({ value: type, label: type.toUpperCase() }))}
                         value={formFields.jenis_aje || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, jenis_aje: e.target.value }))}
-                      >
-                        {AJE_TYPES.map(type => <option key={type} value={type}>{type.toUpperCase()}</option>)}
-                      </select>
+                        onChange={val => setFormFields(prev => ({ ...prev, jenis_aje: val }))}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Akun Debet (COA)</label>
-                      <select 
+                      <SearchableSelect
                         className="form-select"
+                        options={Object.entries(COAS_ALL).map(([key, val]) => ({ value: key, label: val }))}
                         value={formFields.coa_debet || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, coa_debet: e.target.value }))}
-                      >
-                        {Object.entries(COAS_ALL).map(([key, val]) => (
-                          <option key={key} value={key}>{val}</option>
-                        ))}
-                      </select>
+                        onChange={val => setFormFields(prev => ({ ...prev, coa_debet: val }))}
+                      />
                     </div>
                     <div className="form-group">
                       <label>Akun Kredit (COA)</label>
-                      <select 
+                      <SearchableSelect
                         className="form-select"
+                        options={Object.entries(COAS_ALL).map(([key, val]) => ({ value: key, label: val }))}
                         value={formFields.coa_kredit || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, coa_kredit: e.target.value }))}
-                      >
-                        {Object.entries(COAS_ALL).map(([key, val]) => (
-                          <option key={key} value={key}>{val}</option>
-                        ))}
-                      </select>
+                        onChange={val => setFormFields(prev => ({ ...prev, coa_kredit: val }))}
+                      />
                     </div>
                     <div className="form-group full-width">
                       <label>Nominal Penyesuaian (Rp)</label>
@@ -1327,25 +1322,25 @@ const TransaksiKeuangan = () => {
                       </div>
                       <div className="form-group">
                         <label>Akun Kas / Bank Yang Diperiksa</label>
-                        <select 
+                        <SearchableSelect
                           className="form-select"
+                          options={saldo.map(acc => ({ value: acc.coa, label: `${acc.nama} (${acc.coa})` }))}
                           value={formFields.coa || ''}
-                          onChange={e => setFormFields(prev => ({ ...prev, coa: e.target.value }))}
-                        >
-                          {saldo.map(acc => <option key={acc.coa} value={acc.coa}>{acc.nama} ({acc.coa})</option>)}
-                        </select>
+                          onChange={val => setFormFields(prev => ({ ...prev, coa: val }))}
+                        />
                       </div>
                       <div className="form-group">
                         <label>Frekuensi Rekonsiliasi</label>
-                        <select 
+                        <SearchableSelect
                           className="form-select"
+                          options={[
+                            { value: 'd', label: 'Harian (Daily)' },
+                            { value: 'm', label: 'Bulanan (Monthly)' },
+                            { value: 'y', label: 'Tahunan (Yearly)' }
+                          ]}
                           value={formFields.per || ''}
-                          onChange={e => setFormFields(prev => ({ ...prev, per: e.target.value }))}
-                        >
-                          <option value="d">Harian (Daily)</option>
-                          <option value="m">Bulanan (Monthly)</option>
-                          <option value="y">Tahunan (Yearly)</option>
-                        </select>
+                          onChange={val => setFormFields(prev => ({ ...prev, per: val }))}
+                        />
                       </div>
                       <div className="form-group">
                         <label>Keterangan / Temuan</label>

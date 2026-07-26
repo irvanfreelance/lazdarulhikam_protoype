@@ -3,6 +3,7 @@ import {
   Gift, Calendar, CheckSquare, Search, Plus, Filter, ArrowDownCircle, Send
 } from 'lucide-react';
 import { getAccountingData, formatRupiah, updateAccountingData, generateIdTrans } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const KURS = { USD: 16250, EUR: 17600, IDR: 1 };
 
@@ -356,12 +357,16 @@ const GrantHibah = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Mata Uang</label>
-                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                    value={formFields.currency || 'IDR'} onChange={e => setFormFields({ ...formFields, currency: e.target.value })}>
-                    <option value="IDR">IDR</option>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                  </select>
+                  <SearchableSelect
+                    className="form-select"
+                    options={[
+                      { value: 'IDR', label: 'IDR' },
+                      { value: 'USD', label: 'USD' },
+                      { value: 'EUR', label: 'EUR' }
+                    ]}
+                    value={formFields.currency || 'IDR'}
+                    onChange={val => setFormFields({ ...formFields, currency: val })}
+                  />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>
@@ -383,12 +388,16 @@ const GrantHibah = () => {
               )}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Klasifikasi PSAK 45</label>
-                <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                  value={formFields.jenis_dana || 'terikat_sementara'} onChange={e => setFormFields({ ...formFields, jenis_dana: e.target.value })}>
-                  <option value="terikat_sementara">Terikat Sementara</option>
-                  <option value="terikat_permanen">Terikat Permanen</option>
-                  <option value="tidak_terikat">Tidak Terikat</option>
-                </select>
+                <SearchableSelect
+                  className="form-select"
+                  options={[
+                    { value: 'terikat_sementara', label: 'Terikat Sementara' },
+                    { value: 'terikat_permanen', label: 'Terikat Permanen' },
+                    { value: 'tidak_terikat', label: 'Tidak Terikat' }
+                  ]}
+                  value={formFields.jenis_dana || 'terikat_sementara'}
+                  onChange={val => setFormFields({ ...formFields, jenis_dana: val })}
+                />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={() => setIsModalOpen(false)}>Batal</button>

@@ -3,6 +3,7 @@ import {
   Heart, Gift, Users, Search, Plus, Filter, Calculator, Sparkles, ArrowRightCircle
 } from 'lucide-react';
 import { getAccountingData, formatRupiah, updateAccountingData } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const ASNAF_LIST = ['fakir', 'miskin', 'amil', 'muallaf', 'riqab', 'gharim', 'fisabilillah', 'ibnu sabil'];
 const HEWAN_STATUS_FLOW = ['dipelihara', 'siap_potong', 'disembelih', 'didistribusikan'];
@@ -336,10 +337,12 @@ const ProgramZakatQurban = () => {
             <form onSubmit={handleSaveDistribution}>
               <div style={{ marginBottom: '14px' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Asnaf</label>
-                <select required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', textTransform: 'capitalize' }}
-                  value={formFields.asnaf || ''} onChange={e => setFormFields({ ...formFields, asnaf: e.target.value })}>
-                  {ASNAF_LIST.map(a => <option key={a} value={a} style={{ textTransform: 'capitalize' }}>{a}</option>)}
-                </select>
+                <SearchableSelect
+                  className="form-select"
+                  options={ASNAF_LIST.map(a => ({ value: a, label: a.charAt(0).toUpperCase() + a.slice(1) }))}
+                  value={formFields.asnaf || ''}
+                  onChange={val => setFormFields({ ...formFields, asnaf: val })}
+                />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
@@ -378,12 +381,16 @@ const ProgramZakatQurban = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Jenis Hewan</label>
-                  <select required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                    value={formFields.jenis_hewan || ''} onChange={e => setFormFields({ ...formFields, jenis_hewan: e.target.value })}>
-                    <option value="sapi">Sapi</option>
-                    <option value="kambing">Kambing</option>
-                    <option value="domba">Domba</option>
-                  </select>
+                  <SearchableSelect
+                    className="form-select"
+                    options={[
+                      { value: 'sapi', label: 'Sapi' },
+                      { value: 'kambing', label: 'Kambing' },
+                      { value: 'domba', label: 'Domba' }
+                    ]}
+                    value={formFields.jenis_hewan || ''}
+                    onChange={val => setFormFields({ ...formFields, jenis_hewan: val })}
+                  />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Bobot (Kg)</label>

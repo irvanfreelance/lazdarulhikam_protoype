@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GripVertical, Plus, Save, Edit2 } from 'lucide-react';
 import { getAccountingData, updateAccountingData } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 const PengaturanLaporan = () => {
   const [activeTab, setActiveTab] = useState('Struktur Baris Laporan');
@@ -211,12 +212,16 @@ const PengaturanLaporan = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Jenis Laporan</label>
-                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                    value={formFields.report || 'LPK'} onChange={e => setFormFields({ ...formFields, report: e.target.value })}>
-                    <option value="LPK">LPK</option>
-                    <option value="LPO">LPO</option>
-                    <option value="LAK">LAK</option>
-                  </select>
+                  <SearchableSelect
+                    className="form-select"
+                    options={[
+                      { value: 'LPK', label: 'LPK' },
+                      { value: 'LPO', label: 'LPO' },
+                      { value: 'LAK', label: 'LAK' }
+                    ]}
+                    value={formFields.report || 'LPK'}
+                    onChange={val => setFormFields({ ...formFields, report: val })}
+                  />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Kode Baris</label>
@@ -278,11 +283,15 @@ const PengaturanLaporan = () => {
               </div>
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Status</label>
-                <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
-                  value={formFields.status || 'draft'} onChange={e => setFormFields({ ...formFields, status: e.target.value })}>
-                  <option value="draft">Draft</option>
-                  <option value="final">Final</option>
-                </select>
+                <SearchableSelect
+                  className="form-select"
+                  options={[
+                    { value: 'draft', label: 'Draft' },
+                    { value: 'final', label: 'Final' }
+                  ]}
+                  value={formFields.status || 'draft'}
+                  onChange={val => setFormFields({ ...formFields, status: val })}
+                />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={() => setIsNoteModalOpen(false)}>Batal</button>

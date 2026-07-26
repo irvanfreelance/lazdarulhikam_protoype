@@ -3,6 +3,7 @@ import {
   BarChart3, FileText, Calendar, Search, Download, Eye, ChevronRight
 } from 'lucide-react';
 import { getAccountingData, formatRupiah, COAS_ALL } from '../utils/accountingStore';
+import SearchableSelect from '../components/SearchableSelect';
 
 // Opening (carried-forward) fund balances — the only assumed figures in this report.
 // Every other number below is recomputed live from the journal recap
@@ -407,12 +408,14 @@ const LaporanPSAK409 = () => {
           <div>
             <div style={{ display: 'flex', gap: '16px', marginBottom: '20px', alignItems: 'center' }}>
               <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>Pilih Akun Buku Besar:</span>
-              <select style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.875rem', minWidth: '320px' }}
-                value={selectedCoa} onChange={e => setSelectedCoa(e.target.value)}>
-                {Object.entries(COAS_ALL).map(([coa, label]) => (
-                  <option key={coa} value={coa}>{label}</option>
-                ))}
-              </select>
+              <div style={{ minWidth: '320px' }}>
+                <SearchableSelect
+                  className="form-select"
+                  options={Object.entries(COAS_ALL).map(([coa, label]) => ({ value: coa, label }))}
+                  value={selectedCoa}
+                  onChange={setSelectedCoa}
+                />
+              </div>
             </div>
 
             <table className="data-table">

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, Search, Filter } from 'lucide-react';
+import SearchableSelect from '../components/SearchableSelect';
 
 const AuditTrail = () => {
   const [filterModul, setFilterModul] = useState('Semua');
@@ -72,10 +73,12 @@ const AuditTrail = () => {
       {/* Filters */}
       <div className="filters-row">
         <div className="filters-left">
-          <select style={{ padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.875rem' }}
-            value={filterModul} onChange={e => setFilterModul(e.target.value)}>
-            {modules.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
+          <SearchableSelect
+            className="form-select"
+            options={modules.map(m => ({ value: m, label: m }))}
+            value={filterModul}
+            onChange={setFilterModul}
+          />
         </div>
         <div className="filters-right">
           <div className="filter-input">
