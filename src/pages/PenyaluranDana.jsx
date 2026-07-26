@@ -13,6 +13,10 @@ const PenyaluranDana = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [formFields, setFormFields] = useState({});
 
+  // Penerima Massal state
+  const [selectedBeneficiaryIds, setSelectedBeneficiaryIds] = useState([]);
+  const [massalNominal, setMassalNominal] = useState('');
+
   // Store data
   const [data, setData] = useState(() => getAccountingData());
 
@@ -52,6 +56,13 @@ const PenyaluranDana = () => {
           kecamatan: '',
           kabupaten: 'Bogor',
           provinsi: 'Jawa Barat'
+        });
+      } else if (type === 'bukti_add') {
+        const disbursed = data.disbursementRequests.filter(r => r.status === 'disbursed');
+        setFormFields({
+          disbursement_id: disbursed[0]?.id || '',
+          keterangan: '',
+          filename: ''
         });
       }
     } else if (type.includes('edit') && item) {
@@ -99,8 +110,17 @@ const PenyaluranDana = () => {
       };
       const updated = [...store.beneficiaries, newBen];
       updateAccountingData('laz_beneficiaries', updated);
+    } else if (modalType === 'bukti_add') {
+      const newBukti = {
+        id: String(store.buktiRealisasi.length + 1),
+        disbursement_id: formFields.disbursement_id,
+        keterangan: formFields.keterangan,
+        filename: formFields.filename,
+        uploaded_at: new Date().toISOString()
+      };
+      updateAccountingData('laz_bukti_realisasi', [newBukti, ...store.buktiRealisasi]);
     }
-    
+
     setIsModalOpen(false);
     reloadData();
   };
@@ -126,6 +146,51 @@ const PenyaluranDana = () => {
     disburseRequestAction(id, coaKredit);
     reloadData();
     alert('Penyaluran berhasil dicairkan! Jurnal transaksi pengeluaran otomatis ditambahkan.');
+  };
+
+  const toggleBeneficiarySelection = (id) => {
+    setSelectedBeneficiaryIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllBeneficiaries = () => {
+    if (selectedBeneficiaryIds.length === data.beneficiaries.length) {
+      setSelectedBeneficiaryIds([]);
+    } else {
+      setSelectedBeneficiaryIds(data.beneficiaries.map(b => b.id));
+    }
+  };
+
+  const handleSalurkanMassal = () => {
+    const nominal = parseFloat(massalNominal) || 0;
+    if (selectedBeneficiaryIds.length === 0 || nominal <= 0) return;
+    if (!window.confirm(`Buat ${selectedBeneficiaryIds.length} pengajuan penyaluran massal @ ${formatRupiah(nominal)}/penerima?`)) return;
+
+    const store = getAccountingData();
+    const selectedBeneficiaries = store.beneficiaries.filter(b => selectedBeneficiaryIds.includes(b.id));
+    const newRequests = selectedBeneficiaries.map((b, i) => ({
+      id: String(store.disbursementRequests.length + i + 1),
+      nomor_pengajuan: `DSB-2026-000${store.disbursementRequests.length + i + 1}`,
+      judul: `Penyaluran Massal - ${b.nama_lengkap}`,
+      deskripsi: `Penyaluran dana program massal untuk ${b.nama_lengkap}`,
+      campaign_id: b.campaign_id || 1,
+      beneficiary_id: b.id,
+      jenis_penyaluran: 'transfer',
+      jumlah_diajukan: nominal,
+      jumlah_disetujui: nominal,
+      coa_debet: '501.01.000.000',
+      coa_kredit: '101.02.001.000',
+      status: 'draft',
+      nik_pengaju: 'STF001',
+      tgl_pengajuan: new Date().toISOString().substring(0, 10)
+    }));
+
+    updateAccountingData('laz_disbursement_requests', [...newRequests, ...store.disbursementRequests]);
+    setSelectedBeneficiaryIds([]);
+    setMassalNominal('');
+    reloadData();
+    alert(`${newRequests.length} pengajuan penyaluran massal berhasil dibuat sebagai draft.`);
   };
 
   // Stats calculation
@@ -327,55 +392,100 @@ const PenyaluranDana = () => {
         )}
 
         {activeTab === 'Penerima Massal' && (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>No</th>
-                <th>Nama Penerima</th>
-                <th>Jumlah Diterima</th>
-                <th>Satuan</th>
-                <th>Lokasi Penyaluran</th>
-                <th>Tanggal Terima</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td>Warga Sindangrasa (35 KK)</td>
-                <td>35</td>
-                <td>Paket Sembako</td>
-                <td>RT 02 / RW 03 Kel. Sindangrasa</td>
-                <td>2026-07-06</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>Warga Margajaya (15 KK)</td>
-                <td>15</td>
-                <td>Nasi Box Berbuka</td>
-                <td>Masjid Al-Barokah</td>
-                <td>2026-07-06</td>
-              </tr>
-            </tbody>
-          </table>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+              <label style={{ fontSize: '0.875rem', fontWeight: 500 }}>Nominal per Penerima (Rp)</label>
+              <input
+                type="number"
+                placeholder="mis. 500000"
+                style={{ padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: '6px', width: '180px' }}
+                value={massalNominal}
+                onChange={e => setMassalNominal(e.target.value)}
+              />
+              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{selectedBeneficiaryIds.length} penerima dipilih</span>
+              <div style={{ marginLeft: 'auto' }}>
+                <button
+                  className="btn btn-primary"
+                  disabled={selectedBeneficiaryIds.length === 0 || !(parseFloat(massalNominal) > 0)}
+                  style={{ opacity: (selectedBeneficiaryIds.length === 0 || !(parseFloat(massalNominal) > 0)) ? 0.5 : 1 }}
+                  onClick={handleSalurkanMassal}
+                >
+                  <Send size={16} /> Salurkan Massal
+                </button>
+              </div>
+            </div>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '40px' }}>
+                    <input
+                      type="checkbox"
+                      checked={data.beneficiaries.length > 0 && selectedBeneficiaryIds.length === data.beneficiaries.length}
+                      onChange={toggleSelectAllBeneficiaries}
+                    />
+                  </th>
+                  <th>Kode</th>
+                  <th>Nama Penerima</th>
+                  <th>Kategori</th>
+                  <th>Ekonomi</th>
+                  <th>Wilayah</th>
+                  <th>Status Verifikasi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.beneficiaries
+                  .filter(b => b.nama_lengkap.toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map((b, idx) => (
+                    <tr key={idx}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedBeneficiaryIds.includes(b.id)}
+                          onChange={() => toggleBeneficiarySelection(b.id)}
+                        />
+                      </td>
+                      <td style={{ fontFamily: 'monospace' }}>{b.kode_beneficiary}</td>
+                      <td style={{ fontWeight: 500 }}>{b.nama_lengkap}</td>
+                      <td style={{ textTransform: 'capitalize' }}>{b.kategori}</td>
+                      <td style={{ textTransform: 'capitalize' }}>{b.status_ekonomi.replace('_', ' ')}</td>
+                      <td>{b.kelurahan}, {b.kecamatan}, {b.kabupaten}</td>
+                      <td>
+                        <span className={`status-badge ${b.status_verifikasi === 'verified' ? 'status-success' : 'status-warning'}`}>
+                          {b.status_verifikasi === 'verified' ? 'TERVERIFIKASI' : 'UNVERIFIED'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {activeTab === 'Bukti Realisasi' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', padding: '10px' }}>
-            <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-              <div style={{ height: '160px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Image size={40} color="#94a3b8" />
-              </div>
-              <div style={{ padding: '16px' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '8px' }}>Serah Terima Sembako</h3>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '12px' }}>Penyaluran beras dhuafa di Panti Al-Barokah</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8' }}>
-                  <span>Oleh: STF002</span>
-                  <span>06 Juli 2026</span>
+            {data.buktiRealisasi.map((b, idx) => {
+              const req = data.disbursementRequests.find(r => r.id === b.disbursement_id);
+              return (
+                <div key={idx} style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                  <div style={{ height: '160px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Image size={40} color="#94a3b8" />
+                  </div>
+                  <div style={{ padding: '16px' }}>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '8px' }}>{req?.judul || 'Penyaluran'}</h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '12px' }}>{b.keterangan}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8' }}>
+                      <span>{b.filename}</span>
+                      <span>{new Date(b.uploaded_at).toLocaleDateString('id-ID')}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '260px', borderStyle: 'dashed' }}>
-              <Plus size={36} color="#94a3b8" style={{ marginBottom: '12px', cursor: 'pointer' }} />
+              );
+            })}
+            <div
+              onClick={() => openModal('bukti_add')}
+              style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '260px', borderStyle: 'dashed', cursor: 'pointer' }}
+            >
+              <Plus size={36} color="#94a3b8" style={{ marginBottom: '12px' }} />
               <span style={{ fontSize: '0.875rem', color: '#64748b' }}>Upload Bukti Foto/Dokumen Baru</span>
             </div>
           </div>
@@ -388,12 +498,39 @@ const PenyaluranDana = () => {
           <div style={{ background: 'white', padding: '28px', borderRadius: '16px', width: '500px', maxWidth: '90%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                {modalType === 'request_add' ? 'Buat Pengajuan Penyaluran' : 'Tambah Penerima Manfaat'}
+                {modalType === 'request_add' && 'Buat Pengajuan Penyaluran'}
+                {modalType === 'beneficiary_add' && 'Tambah Penerima Manfaat'}
+                {modalType === 'bukti_add' && 'Rekam Bukti Realisasi'}
               </h2>
               <X size={20} style={{ cursor: 'pointer' }} onClick={() => setIsModalOpen(false)} />
             </div>
             <form onSubmit={handleSave}>
-              {modalType === 'request_add' ? (
+              {modalType === 'bukti_add' ? (
+                <>
+                  <div style={{ marginBottom: '14px' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Pengajuan Penyaluran (yang sudah dicairkan)</label>
+                    <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                      value={formFields.disbursement_id || ''} onChange={e => setFormFields({...formFields, disbursement_id: e.target.value})}>
+                      {data.disbursementRequests.filter(r => r.status === 'disbursed').length === 0 && (
+                        <option value="">Belum ada penyaluran yang dicairkan</option>
+                      )}
+                      {data.disbursementRequests.filter(r => r.status === 'disbursed').map(r => (
+                        <option key={r.id} value={r.id}>{r.judul}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ marginBottom: '14px' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Keterangan</label>
+                    <textarea required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', height: '80px' }}
+                      value={formFields.keterangan || ''} onChange={e => setFormFields({...formFields, keterangan: e.target.value})} />
+                  </div>
+                  <div style={{ marginBottom: '20px' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Nama File (simulasi upload)</label>
+                    <input type="text" required placeholder="mis. serah-terima-sembako.jpg" style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                      value={formFields.filename || ''} onChange={e => setFormFields({...formFields, filename: e.target.value})} />
+                  </div>
+                </>
+              ) : modalType === 'request_add' ? (
                 <>
                   <div style={{ marginBottom: '14px' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Judul Program Penyaluran</label>

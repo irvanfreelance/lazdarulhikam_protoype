@@ -1,39 +1,77 @@
 import React, { useState } from 'react';
-import { FileText, GripVertical, Plus, Save } from 'lucide-react';
+import { GripVertical, Plus, Save, Edit2 } from 'lucide-react';
+import { getAccountingData, updateAccountingData } from '../utils/accountingStore';
 
 const PengaturanLaporan = () => {
   const [activeTab, setActiveTab] = useState('Struktur Baris Laporan');
-
-  // Report structure rows
-  const [reportRows] = useState([
-    { id: 1, report: 'LPK', kode: 'LPK-01', nama: 'Kas dan Setara Kas', coa: '101.xx', sort: 1, active: true },
-    { id: 2, report: 'LPK', kode: 'LPK-02', nama: 'Piutang Usaha', coa: '103.xx', sort: 2, active: true },
-    { id: 3, report: 'LPK', kode: 'LPK-03', nama: 'Aset Tetap (Bersih)', coa: '102.xx', sort: 3, active: true },
-    { id: 4, report: 'LPK', kode: 'LPK-04', nama: 'Hutang Usaha', coa: '201.xx', sort: 4, active: true },
-    { id: 5, report: 'LPK', kode: 'LPK-05', nama: 'Dana Tidak Terikat', coa: '300.01', sort: 5, active: true },
-    { id: 6, report: 'LPK', kode: 'LPK-06', nama: 'Dana Terikat Sementara', coa: '300.02', sort: 6, active: true },
-    { id: 7, report: 'LPK', kode: 'LPK-07', nama: 'Dana Terikat Permanen', coa: '300.03', sort: 7, active: true },
-    { id: 8, report: 'LPO', kode: 'LPO-01', nama: 'Donasi Kesehatan', coa: '401.01', sort: 1, active: true },
-    { id: 9, report: 'LPO', kode: 'LPO-02', nama: 'Donasi Bencana', coa: '401.02', sort: 2, active: true },
-    { id: 10, report: 'LPO', kode: 'LPO-03', nama: 'Sedekah Pangan', coa: '401.04', sort: 3, active: true },
-    { id: 11, report: 'LPO', kode: 'LPO-04', nama: 'Zakat Profesi & Maal', coa: '401.05', sort: 4, active: true },
-    { id: 12, report: 'LPO', kode: 'LPO-05', nama: 'Biaya Penyaluran Program', coa: '501.xx', sort: 5, active: true },
-    { id: 13, report: 'LPO', kode: 'LPO-06', nama: 'Biaya Operasional', coa: '502.xx', sort: 6, active: true },
-    { id: 14, report: 'LAK', kode: 'LAK-01', nama: 'Arus Kas Operasi', coa: '401-502', sort: 1, active: true },
-    { id: 15, report: 'LAK', kode: 'LAK-02', nama: 'Arus Kas Investasi', coa: '102.xx', sort: 2, active: true },
-    { id: 16, report: 'LAK', kode: 'LAK-03', nama: 'Arus Kas Pendanaan', coa: '300.xx', sort: 3, active: true },
-  ]);
-
+  const [reportRows, setReportRows] = useState(() => getAccountingData().reportRows);
+  const [calkNotes, setCalkNotes] = useState(() => getAccountingData().calkNotes);
   const [filterReport, setFilterReport] = useState('ALL');
+  const [isRowModalOpen, setIsRowModalOpen] = useState(false);
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [formFields, setFormFields] = useState({});
 
-  // CALK Notes
-  const [calkNotes] = useState([
-    { id: 1, nomor: 1, judul: 'Gambaran Umum Organisasi', periode: 'TA 2026', isi: 'LAZ Darul Hikam adalah Lembaga Amil Zakat yang bergerak di bidang penghimpunan dan penyaluran dana zakat, infaq, sedekah, dan dana sosial kemanusiaan lainnya. Didirikan berdasarkan akta notaris ...', status: 'draft' },
-    { id: 2, nomor: 2, judul: 'Ikhtisar Kebijakan Akuntansi', periode: 'TA 2026', isi: 'Laporan keuangan disusun berdasarkan PSAK 45 tentang Pelaporan Keuangan Organisasi Nirlaba. Dasar penyusunan menggunakan basis akrual ...', status: 'final' },
-    { id: 3, nomor: 3, judul: 'Kas dan Setara Kas', periode: 'TA 2026', isi: 'Kas dan setara kas terdiri dari kas di tangan, rekening giro, dan simpanan jangka pendek yang jatuh tempo dalam 3 bulan. Rincian per rekening bank ...', status: 'draft' },
-    { id: 4, nomor: 4, judul: 'Aset Tetap', periode: 'TA 2026', isi: 'Aset tetap dicatat pada harga perolehan dikurangi akumulasi penyusutan. Penyusutan dihitung menggunakan metode garis lurus ...', status: 'final' },
-    { id: 5, nomor: 5, judul: 'Dana Terikat', periode: 'TA 2026', isi: 'Dana terikat sementara terdiri dari sumbangan donor yang penggunaannya dibatasi oleh pemberi untuk tujuan tertentu. Dana terikat permanen berupa wakaf tanah dan gedung ...', status: 'draft' },
-  ]);
+  const toggleRowActive = (rowId) => {
+    const updated = reportRows.map(r => r.id === rowId ? { ...r, active: !r.active } : r);
+    setReportRows(updated);
+    updateAccountingData('laz_report_rows', updated);
+  };
+
+  const openAddRow = () => {
+    setFormFields({ report: 'LPK', kode: '', nama: '', coa: '', sort: reportRows.length + 1 });
+    setIsRowModalOpen(true);
+  };
+
+  const handleSaveRow = (e) => {
+    e.preventDefault();
+    const newRow = {
+      id: reportRows.length > 0 ? Math.max(...reportRows.map(r => r.id)) + 1 : 1,
+      report: formFields.report,
+      kode: formFields.kode,
+      nama: formFields.nama,
+      coa: formFields.coa,
+      sort: parseInt(formFields.sort) || reportRows.length + 1,
+      active: true
+    };
+    const updated = [...reportRows, newRow];
+    setReportRows(updated);
+    updateAccountingData('laz_report_rows', updated);
+    setIsRowModalOpen(false);
+    alert('Baris laporan berhasil disimpan.');
+  };
+
+  const openEditNote = (note) => {
+    setFormFields({ ...note });
+    setIsNoteModalOpen(true);
+  };
+
+  const openAddNote = () => {
+    setFormFields({ nomor: calkNotes.length + 1, judul: '', periode: 'TA 2026', isi: '', status: 'draft' });
+    setIsNoteModalOpen(true);
+  };
+
+  const handleSaveNote = (e) => {
+    e.preventDefault();
+    const isEdit = calkNotes.some(n => n.id === formFields.id);
+    let updated;
+    if (isEdit) {
+      updated = calkNotes.map(n => n.id === formFields.id ? { ...formFields, nomor: parseInt(formFields.nomor) } : n);
+    } else {
+      const newNote = {
+        id: calkNotes.length > 0 ? Math.max(...calkNotes.map(n => n.id)) + 1 : 1,
+        nomor: parseInt(formFields.nomor) || calkNotes.length + 1,
+        judul: formFields.judul,
+        periode: formFields.periode,
+        isi: formFields.isi,
+        status: formFields.status || 'draft'
+      };
+      updated = [...calkNotes, newNote];
+    }
+    setCalkNotes(updated);
+    updateAccountingData('laz_calk_notes', updated);
+    setIsNoteModalOpen(false);
+    alert('Catatan CALK berhasil disimpan.');
+  };
 
   const filtered = filterReport === 'ALL' ? reportRows : reportRows.filter(r => r.report === filterReport);
 
@@ -43,6 +81,18 @@ const PengaturanLaporan = () => {
         <div className="page-title">
           <h1>Pengaturan Laporan</h1>
           <p>Konfigurasi struktur baris laporan keuangan dan Catatan Atas Laporan Keuangan (CALK)</p>
+        </div>
+        <div>
+          {activeTab === 'Struktur Baris Laporan' && (
+            <button className="btn btn-primary" onClick={openAddRow}>
+              <Plus size={16} /> Tambah Baris
+            </button>
+          )}
+          {activeTab === 'CALK' && (
+            <button className="btn btn-primary" onClick={openAddNote}>
+              <Plus size={16} /> Tambah Catatan
+            </button>
+          )}
         </div>
       </div>
 
@@ -92,7 +142,12 @@ const PengaturanLaporan = () => {
                     <td style={{ fontFamily: 'monospace' }}>{row.coa}</td>
                     <td>{row.sort}</td>
                     <td>
-                      <span className={`status-badge ${row.active ? 'status-success' : 'status-danger'}`}>
+                      <span
+                        className={`status-badge ${row.active ? 'status-success' : 'status-danger'}`}
+                        style={{ cursor: 'pointer' }}
+                        title="Klik untuk mengubah status"
+                        onClick={() => toggleRowActive(row.id)}
+                      >
                         {row.active ? 'AKTIF' : 'NONAKTIF'}
                       </span>
                     </td>
@@ -114,6 +169,7 @@ const PengaturanLaporan = () => {
                   <th>Periode</th>
                   <th>Isi (Preview)</th>
                   <th>Status</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -130,6 +186,11 @@ const PengaturanLaporan = () => {
                         {note.status === 'final' ? 'FINAL' : 'DRAFT'}
                       </span>
                     </td>
+                    <td>
+                      <button className="btn" style={{ padding: '6px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', background: '#eef2ff', color: '#4f46e5', border: 'none' }} onClick={() => openEditNote(note)}>
+                        <Edit2 size={12} /> Edit
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -137,6 +198,100 @@ const PengaturanLaporan = () => {
           </div>
         )}
       </div>
+
+      {/* MODAL: TAMBAH BARIS */}
+      {isRowModalOpen && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '28px', borderRadius: '16px', width: '480px', maxWidth: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Tambah Baris Laporan</h2>
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsRowModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveRow}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Jenis Laporan</label>
+                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                    value={formFields.report || 'LPK'} onChange={e => setFormFields({ ...formFields, report: e.target.value })}>
+                    <option value="LPK">LPK</option>
+                    <option value="LPO">LPO</option>
+                    <option value="LAK">LAK</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Kode Baris</label>
+                  <input type="text" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                    value={formFields.kode || ''} onChange={e => setFormFields({ ...formFields, kode: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Nama Akun / Baris</label>
+                <input type="text" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  value={formFields.nama || ''} onChange={e => setFormFields({ ...formFields, nama: e.target.value })} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>COA Range</label>
+                  <input type="text" placeholder="cth. 401.xx" style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                    value={formFields.coa || ''} onChange={e => setFormFields({ ...formFields, coa: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Urutan</label>
+                  <input type="number" style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                    value={formFields.sort || ''} onChange={e => setFormFields({ ...formFields, sort: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={() => setIsRowModalOpen(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary"><Save size={14} /> Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CALK NOTE */}
+      {isNoteModalOpen && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '28px', borderRadius: '16px', width: '560px', maxWidth: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{formFields.id ? 'Edit' : 'Tambah'} Catatan CALK</h2>
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsNoteModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveNote}>
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Judul Catatan</label>
+                  <input type="text" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                    value={formFields.judul || ''} onChange={e => setFormFields({ ...formFields, judul: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Periode</label>
+                  <input type="text" style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                    value={formFields.periode || ''} onChange={e => setFormFields({ ...formFields, periode: e.target.value })} />
+                </div>
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Isi Catatan</label>
+                <textarea rows={5} required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontFamily: 'inherit' }}
+                  value={formFields.isi || ''} onChange={e => setFormFields({ ...formFields, isi: e.target.value })} />
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Status</label>
+                <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  value={formFields.status || 'draft'} onChange={e => setFormFields({ ...formFields, status: e.target.value })}>
+                  <option value="draft">Draft</option>
+                  <option value="final">Final</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={() => setIsNoteModalOpen(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary"><Save size={14} /> Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

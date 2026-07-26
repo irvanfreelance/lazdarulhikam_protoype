@@ -138,7 +138,7 @@ const LaporanSDM = () => {
                       <td style={{ textAlign: 'right', color: '#ef4444' }}>- {formatRupiah(pph)}</td>
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatRupiah(thp)}</td>
                       <td>
-                        <button className="btn" style={{ padding: '4px 10px', fontSize: '0.7rem', background: 'white', border: '1px solid #e2e8f0' }}>
+                        <button className="btn" style={{ padding: '4px 10px', fontSize: '0.7rem', background: 'white', border: '1px solid #e2e8f0' }} onClick={() => window.print()}>
                           <Download size={12} /> PDF
                         </button>
                       </td>
@@ -200,7 +200,15 @@ const LaporanSDM = () => {
                       <td style={{ textAlign: 'right' }}>{formatRupiah(brutoTahunan)}</td>
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatRupiah(pphTahunan)}</td>
                       <td>
-                        <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '0.7rem' }}>
+                        <button className="btn btn-primary" style={{ padding: '4px 10px', fontSize: '0.7rem' }} onClick={() => {
+                          alert(
+                            `BUKTI POTONG PPh 21 TAHUNAN (1721-A1)\n\n` +
+                            `Nama Karyawan: ${emp.nama}\nNPWP: ${emp.npwp || '-'}\n` +
+                            `Penghasilan Bruto Tahunan: ${formatRupiah(brutoTahunan)}\n` +
+                            `PPh 21 Tahunan: ${formatRupiah(pphTahunan)}`
+                          );
+                          window.print();
+                        }}>
                           <Download size={12} /> Generate 1721-A1
                         </button>
                       </td>

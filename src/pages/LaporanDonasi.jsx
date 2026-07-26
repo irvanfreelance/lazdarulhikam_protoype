@@ -305,7 +305,7 @@ const LaporanDonasi = () => {
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatRupiah(val.total)}</td>
                       <td>{val.count} kali</td>
                       <td>
-                        <button className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '0.75rem' }}>
+                        <button className="btn btn-primary" style={{ padding: '4px 12px', fontSize: '0.75rem' }} onClick={() => window.print()}>
                           <Download size={12} style={{ marginRight: '4px' }} /> Generate PDF
                         </button>
                       </td>

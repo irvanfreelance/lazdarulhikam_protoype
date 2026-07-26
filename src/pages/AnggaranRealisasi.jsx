@@ -13,19 +13,24 @@ const AnggaranRealisasi = () => {
     setData(getAccountingData());
   };
 
-  const handleSyncCampaign = (campId) => {
-    // In a real database, this would re-sum all ledger items. Here we simulate a sync.
-    alert('Sinkronisasi data realisasi campaign berhasil! Data budget & realisasi di-update.');
-  };
+  const handleSyncCampaign = (campaignId) => {
+    // Recompute real realisasi for every campaign budget by summing matching PAID pengeluaran, then persist it.
+    const store = getAccountingData();
+    const updatedBudgets = store.campaignBudgets.map(b => {
+      const actual = store.pengeluaran
+        .filter(p => p.coa === b.coa && p.status === 'PAID')
+        .reduce((sum, p) => sum + p.nominal, 0);
+      return { ...b, realisasi: actual };
+    });
 
-  // Campaigns list from KampanyeList
-  const campaigns = [
-    { id: 1, name: 'Bantuan Darurat Bencana Banjir', category: 'Kemanusiaan', target: 100000000, collected: 85000000 },
-    { id: 2, name: 'Pembangunan Masjid Pelosok', category: 'Infrastruktur', target: 500000000, collected: 300000000 },
-    { id: 3, name: 'Beasiswa Santri Tahfidz', category: 'Pendidikan', target: 50000000, collected: 21000000 },
-    { id: 4, name: 'Wakaf Sumur Air Bersih', category: 'Kemanusiaan', target: 25000000, collected: 25000000 },
-    { id: 5, name: 'Operasional Panti Asuhan', category: 'Sosial', target: 20000000, collected: 5000000 }
-  ];
+    updateAccountingData('laz_campaign_budgets', updatedBudgets);
+
+    const synced = updatedBudgets.find(b => b.campaign_id === campaignId);
+    alert(synced
+      ? `Sinkronisasi berhasil! Realisasi "${synced.name}" ter-update menjadi ${formatRupiah(synced.realisasi)}.`
+      : 'Sinkronisasi data realisasi campaign berhasil! Data budget & realisasi di-update.');
+    reloadData();
+  };
 
   return (
     <div className="content-area">
@@ -122,34 +127,44 @@ const AnggaranRealisasi = () => {
             <thead>
               <tr>
                 <th>Campaign</th>
-                <th>Kategori</th>
-                <th style={{ textAlign: 'right' }}>Target Dana</th>
-                <th style={{ textAlign: 'right' }}>Terkumpul</th>
-                <th>Pencapaian</th>
+                <th>COA Penyaluran</th>
+                <th style={{ textAlign: 'right' }}>Pagu Anggaran</th>
+                <th style={{ textAlign: 'right' }}>Realisasi (Actual)</th>
+                <th>Serapan</th>
+                <th style={{ textAlign: 'right' }}>Sisa Anggaran</th>
                 <th>Sync</th>
               </tr>
             </thead>
             <tbody>
-              {campaigns
-                .filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                .map((c, idx) => {
-                  const pct = Math.round((c.collected / c.target) * 100);
+              {data.campaignBudgets
+                .filter(b => b.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                .map((b, idx) => {
+                  const actual = data.pengeluaran
+                    .filter(p => p.coa === b.coa && p.status === 'PAID')
+                    .reduce((sum, p) => sum + p.nominal, 0);
+                  const pct = b.budget > 0 ? (actual / b.budget) * 100 : 0;
+                  const sisa = b.budget - actual;
                   return (
                     <tr key={idx}>
-                      <td style={{ fontWeight: 500 }}>{c.name}</td>
-                      <td>{c.category}</td>
-                      <td style={{ textAlign: 'right' }}>{formatRupiah(c.target)}</td>
-                      <td style={{ textAlign: 'right', color: '#10b981', fontWeight: 600 }}>{formatRupiah(c.collected)}</td>
+                      <td style={{ fontWeight: 500 }}>{b.name}</td>
+                      <td>
+                        <span style={{ fontSize: '0.75rem', background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px' }}>
+                          {b.coa}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>{formatRupiah(b.budget)}</td>
+                      <td style={{ textAlign: 'right', color: '#ef4444', fontWeight: 600 }}>{formatRupiah(actual)}</td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <div style={{ flex: 1, height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden', minWidth: '80px' }}>
-                            <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', backgroundColor: '#0ea5e9' }}></div>
+                            <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', backgroundColor: pct > 90 ? '#ef4444' : '#0ea5e9' }}></div>
                           </div>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>{pct}%</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 'bold' }}>{pct.toFixed(1)}%</span>
                         </div>
                       </td>
+                      <td style={{ textAlign: 'right', fontWeight: 600, color: sisa >= 0 ? '#10b981' : '#ef4444' }}>{formatRupiah(sisa)}</td>
                       <td>
-                        <button className="btn" style={{ padding: '6px', display: 'flex', alignItems: 'center', background: 'white', border: '1px solid #e2e8f0' }} onClick={() => handleSyncCampaign(c.id)}>
+                        <button className="btn" style={{ padding: '6px', display: 'flex', alignItems: 'center', background: 'white', border: '1px solid #e2e8f0' }} onClick={() => handleSyncCampaign(b.campaign_id)}>
                           <RefreshCw size={14} />
                         </button>
                       </td>
@@ -160,42 +175,42 @@ const AnggaranRealisasi = () => {
           </table>
         )}
 
-        {activeTab === 'Admin Fee Invoice' && (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Invoice</th>
-                <th>Campaign</th>
-                <th style={{ textAlign: 'right' }}>Gross Amount</th>
-                <th style={{ textAlign: 'right' }}>Admin Fee (12.5%)</th>
-                <th style={{ textAlign: 'right' }}>Net Dana Program</th>
-                <th>Status Jurnal</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ fontFamily: 'monospace' }}>INV-2607120935</td>
-                <td>Bantuan Darurat Bencana Banjir</td>
-                <td style={{ textAlign: 'right' }}>Rp 5.000.000</td>
-                <td style={{ textAlign: 'right', color: '#f59e0b' }}>Rp 625.000</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>Rp 4.375.000</td>
-                <td>
-                  <span className="status-badge status-success">REKLASIFIKASI OK</span>
-                </td>
-              </tr>
-              <tr>
-                <td style={{ fontFamily: 'monospace' }}>INV-2607121015</td>
-                <td>Pembangunan Masjid Pelosok</td>
-                <td style={{ textAlign: 'right' }}>Rp 2.500.000</td>
-                <td style={{ textAlign: 'right', color: '#f59e0b' }}>Rp 312.500</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>Rp 2.187.500</td>
-                <td>
-                  <span className="status-badge status-success">REKLASIFIKASI OK</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        )}
+        {activeTab === 'Admin Fee Invoice' && (() => {
+          const feeTrans = data.pengeluaran.filter(p => p.coa === '502.01.000.000');
+          return (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>ID Transaksi</th>
+                  <th>Tanggal</th>
+                  <th>Keterangan / Vendor</th>
+                  <th style={{ textAlign: 'right' }}>Nominal Biaya PG Platform</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {feeTrans.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: '20px' }}>
+                      Belum ada transaksi Biaya PG Platform / Admin Fee yang tercatat
+                    </td>
+                  </tr>
+                )}
+                {feeTrans.map((t, idx) => (
+                  <tr key={idx}>
+                    <td style={{ fontFamily: 'monospace' }}>{t.id_trans}</td>
+                    <td>{t.tgl ? new Date(t.tgl).toLocaleString('id-ID') : '-'}</td>
+                    <td style={{ fontWeight: 500 }}>{t.vendor || t.note}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600, color: '#f59e0b' }}>{formatRupiah(t.nominal)}</td>
+                    <td>
+                      <span className={`status-badge ${t.status === 'PAID' ? 'status-success' : 'status-warning'}`}>{t.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          );
+        })()}
       </div>
     </div>
   );

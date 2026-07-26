@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   CreditCard, RefreshCw, Plus, Search, CheckCircle, ArrowRight
 } from 'lucide-react';
-import { getAccountingData, formatRupiah, executeInternalTransferAction, updateAccountingData } from '../utils/accountingStore';
+import { getAccountingData, formatRupiah, executeInternalTransferAction, updateAccountingData, payPurchaseOrderAction } from '../utils/accountingStore';
 
 const HutangPiutang = () => {
   const [activeTab, setActiveTab] = useState('Hutang Usaha');
@@ -24,6 +24,13 @@ const HutangPiutang = () => {
   const handleCompleteTransfer = (transferId) => {
     executeInternalTransferAction(transferId);
     alert('Transfer internal diproses! Saldo kas asal & tujuan telah di-update otomatis.');
+    reloadData();
+  };
+
+  const handleBayarHutang = (poId, outstanding) => {
+    if (!window.confirm(`Bayar pelunasan hutang sebesar ${formatRupiah(outstanding)} dari BCA — Transfer Manual?`)) return;
+    payPurchaseOrderAction(poId, '101.02.001.000');
+    alert('Hutang usaha berhasil dilunasi! Saldo bank ter-update dan status PO menjadi PAID.');
     reloadData();
   };
 
@@ -49,9 +56,16 @@ const HutangPiutang = () => {
     reloadData();
   };
 
-  // Calculations
-  const totalHutang = 25000000; // PO Sisa Bayar
+  // Calculations — Hutang Usaha = open Purchase Orders not yet fully paid
+  const openPOs = data.purchaseOrders.filter(po => po.status !== 'paid' && po.status !== 'cancelled');
+  const totalHutang = openPOs.reduce((sum, po) => sum + (po.total_amount - (po.dp_amount || 0)), 0);
   const totalReceivables = data.cashAdvances.filter(c => c.status === 'active').reduce((sum, c) => sum + c.sisa_kasbon, 0);
+
+  const dueDate = (tglPo, termDays) => {
+    const d = new Date(tglPo);
+    d.setDate(d.getDate() + (termDays || 14));
+    return d.toISOString().substring(0, 10);
+  };
 
   return (
     <div className="content-area">
@@ -144,24 +158,40 @@ const HutangPiutang = () => {
                 <th style={{ textAlign: 'right' }}>Total Tagihan</th>
                 <th style={{ textAlign: 'right' }}>Outstanding</th>
                 <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {data.vendors
-                .filter(v => v.nama_vendor.toLowerCase().includes(searchTerm.toLowerCase()))
-                .map((v, idx) => (
-                  <tr key={idx}>
-                    <td style={{ fontFamily: 'monospace' }}>PAY-2026-000{idx + 1}</td>
-                    <td style={{ fontWeight: 500 }}>{v.nama_vendor}</td>
-                    <td>2026-07-10</td>
-                    <td>2026-07-24</td>
-                    <td style={{ textAlign: 'right' }}>Rp 25.000.000</td>
-                    <td style={{ textAlign: 'right', fontWeight: 600, color: '#ef4444' }}>Rp 20.000.000</td>
-                    <td>
-                      <span className="status-badge status-warning">PARTIAL</span>
-                    </td>
-                  </tr>
-                ))}
+              {openPOs.length === 0 && (
+                <tr><td colSpan={8} style={{ textAlign: 'center', color: '#94a3b8', padding: '20px' }}>Tidak ada hutang usaha outstanding</td></tr>
+              )}
+              {openPOs
+                .map(po => ({ po, vendor: data.vendors.find(v => v.id === po.vendor_id) }))
+                .filter(({ vendor }) => (vendor?.nama_vendor || '').toLowerCase().includes(searchTerm.toLowerCase()))
+                .map(({ po, vendor }, idx) => {
+                  const outstanding = po.total_amount - (po.dp_amount || 0);
+                  const isPartial = (po.dp_amount || 0) > 0;
+                  return (
+                    <tr key={idx}>
+                      <td style={{ fontFamily: 'monospace' }}>{po.nomor_po}</td>
+                      <td style={{ fontWeight: 500 }}>{vendor?.nama_vendor || 'Vendor tidak diketahui'}</td>
+                      <td>{po.tgl_po}</td>
+                      <td>{dueDate(po.tgl_po, vendor?.term_bayar)}</td>
+                      <td style={{ textAlign: 'right' }}>{formatRupiah(po.total_amount)}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 600, color: '#ef4444' }}>{formatRupiah(outstanding)}</td>
+                      <td>
+                        <span className={`status-badge ${isPartial ? 'status-warning' : 'status-danger'}`}>
+                          {isPartial ? 'PARTIAL (DP)' : 'BELUM DIBAYAR'}
+                        </span>
+                      </td>
+                      <td>
+                        <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '0.75rem' }} onClick={() => handleBayarHutang(po.id, outstanding)}>
+                          Bayar Hutang
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         )}

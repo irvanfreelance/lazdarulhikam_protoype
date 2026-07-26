@@ -27,7 +27,7 @@ const DashboardAkuntansi = () => {
   const pendingDisbursements = data.disbursementRequests
     .filter(d => d.status === 'approved')
     .length;
-  const totalAset = data.asetTetap.reduce((sum, a) => sum + a.harga_perolehan, 0);
+  const totalAset = data.assets.reduce((sum, a) => sum + a.harga_perolehan, 0);
 
   // Monthly trend data (simulated 6 months)
   const months = ['Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'];
@@ -46,14 +46,14 @@ const DashboardAkuntansi = () => {
     .slice(0, 5);
 
   // Active period
-  const activePeriod = data.periods.find(p => p.status === 'open');
+  const activePeriod = data.accountingPeriods.find(p => p.status === 'open');
 
   return (
     <div className="content-area">
       <div className="page-header">
         <div className="page-title">
           <h1>Dashboard Akuntansi</h1>
-          <p>Ringkasan keuangan LAZ Darul Hikam — Periode {activePeriod ? `${activePeriod.bulan}/${activePeriod.tahun}` : 'Aktif'}</p>
+          <p>Ringkasan keuangan LAZ Darul Hikam — Periode {activePeriod ? activePeriod.nama_periode : 'Aktif'}</p>
         </div>
       </div>
 
@@ -146,7 +146,7 @@ const DashboardAkuntansi = () => {
             <div className="stat-title">Total Nilai Aset Tetap</div>
           </div>
           <div className="stat-value">{formatRupiah(totalAset)}</div>
-          <div className="stat-change">{data.asetTetap.length} unit tercatat</div>
+          <div className="stat-change">{data.assets.length} unit tercatat</div>
         </div>
 
         <div className="stat-card">
@@ -157,7 +157,7 @@ const DashboardAkuntansi = () => {
             <div className="stat-title">Periode Akuntansi Aktif</div>
           </div>
           <div className="stat-value" style={{ fontSize: '1.1rem' }}>
-            {activePeriod ? `${activePeriod.nama}` : 'Tidak ada'}
+            {activePeriod ? activePeriod.nama_periode : 'Tidak ada'}
           </div>
           <div className="stat-change">
             <span className="status-badge status-success">OPEN</span>
@@ -246,7 +246,7 @@ const DashboardAkuntansi = () => {
               return (
                 <tr key={idx}>
                   <td style={{ fontFamily: 'monospace' }}>{s.coa}</td>
-                  <td style={{ fontWeight: 500 }}>{s.nama_rek}</td>
+                  <td style={{ fontWeight: 500 }}>{s.nama}</td>
                   <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatRupiah(s.saldo)}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

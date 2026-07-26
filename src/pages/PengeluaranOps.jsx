@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   Receipt, Wallet, FileText, ShoppingCart, Search, Plus, Filter, CheckCircle, Play, CheckSquare, X
 } from 'lucide-react';
-import { 
-  getAccountingData, payExpenseAction, disburseCashAdvanceAction, settleCashAdvanceAction, updateAccountingData, formatRupiah 
+import {
+  getAccountingData, payExpenseAction, disburseCashAdvanceAction, settleCashAdvanceAction, payPurchaseOrderAction, updateAccountingData, formatRupiah
 } from '../utils/accountingStore';
+
+const KAS_KECIL_COA = '101.01.002.000';
 
 const PengeluaranOps = () => {
   const [activeTab, setActiveTab] = useState('Reimbursement / Expense');
@@ -143,9 +145,41 @@ const PengeluaranOps = () => {
     alert('Reimbursement / Expense berhasil dibayar dan diposting ke Keuangan!');
   };
 
+  const handleBayarPO = (poId, outstanding) => {
+    if (!window.confirm(`Bayar pelunasan PO sebesar ${formatRupiah(outstanding)} dari BCA — Transfer Manual?`)) return;
+    payPurchaseOrderAction(poId, '101.02.001.000');
+    alert('Pelunasan PO berhasil diposting! Saldo bank ter-update dan status PO menjadi PAID.');
+    reloadData();
+  };
+
   // Stats calculation
   const totalExpense = data.expenseRequests.reduce((sum, e) => sum + e.total_amount, 0);
   const totalKasbon = data.cashAdvances.filter(c => c.status === 'active').reduce((sum, c) => sum + c.sisa_kasbon, 0);
+
+  // Kas Kecil ledger — derived from real pengeluaran/penerimaan mutations touching the Kas Kecil COA
+  const kasKecilSaldo = data.saldo.find(s => s.coa === KAS_KECIL_COA)?.saldo || 0;
+  const kasKecilMutasi = [
+    ...data.pengeluaran
+      .filter(p => p.coa === KAS_KECIL_COA || p.coa_bayar === KAS_KECIL_COA)
+      .map(p => ({
+        key: `exp-${p.id}`,
+        tgl: p.tgl,
+        keterangan: p.note || p.vendor,
+        jenis: p.coa_bayar === KAS_KECIL_COA ? 'Keluar' : 'Masuk',
+        jumlah: p.nominal,
+        coaLawan: p.coa_bayar === KAS_KECIL_COA ? p.coa : p.coa_bayar
+      })),
+    ...data.penerimaan
+      .filter(p => p.coa === KAS_KECIL_COA)
+      .map(p => ({
+        key: `rcv-${p.id}`,
+        tgl: p.tgl,
+        keterangan: p.note || p.donatur,
+        jenis: 'Masuk',
+        jumlah: p.nominal,
+        coaLawan: p.coa
+      }))
+  ].sort((a, b) => new Date(b.tgl) - new Date(a.tgl));
 
   return (
     <div className="content-area">
@@ -340,6 +374,7 @@ const PengeluaranOps = () => {
                 <th style={{ textAlign: 'right' }}>Total PO</th>
                 <th style={{ textAlign: 'right' }}>Uang Muka (DP)</th>
                 <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -347,6 +382,8 @@ const PengeluaranOps = () => {
                 .filter(po => po.judul.toLowerCase().includes(searchTerm.toLowerCase()))
                 .map((po, idx) => {
                   const vendorName = data.vendors.find(v => v.id === po.vendor_id)?.nama_vendor || 'Vendor';
+                  const outstanding = po.total_amount - (po.dp_amount || 0);
+                  const isPaid = po.status === 'paid' || (po.dp_amount || 0) >= po.total_amount;
                   return (
                     <tr key={idx}>
                       <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{po.nomor_po}</td>
@@ -355,7 +392,16 @@ const PengeluaranOps = () => {
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatRupiah(po.total_amount)}</td>
                       <td style={{ textAlign: 'right' }}>{formatRupiah(po.dp_amount)}</td>
                       <td>
-                        <span className="status-badge status-success">{po.status.toUpperCase()}</span>
+                        <span className={`status-badge ${isPaid ? 'status-success' : 'status-warning'}`}>{po.status.toUpperCase()}</span>
+                      </td>
+                      <td>
+                        {isPaid ? (
+                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Lunas</span>
+                        ) : (
+                          <button className="btn btn-primary" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={() => handleBayarPO(po.id, outstanding)}>
+                            Bayar Pelunasan
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );
@@ -366,9 +412,14 @@ const PengeluaranOps = () => {
 
         {activeTab === 'Kas Kecil' && (
           <div>
-            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
-              <h3 style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '4px' }}>Buku Kas Kecil Bogor</h3>
-              <p style={{ fontSize: '0.85rem', color: '#64748b' }}>Pemegang: Ahmad Faisal | Limit: Rp 5.000.000 | Saldo Saat Ini: Rp 2.500.000</p>
+            <div className="stat-card" style={{ maxWidth: '320px', marginBottom: '16px' }}>
+              <div className="stat-header">
+                <div className="stat-icon" style={{ background: '#d1fae5', color: '#10b981' }}>
+                  <Wallet size={20} />
+                </div>
+                <div className="stat-title">Saldo Kas Kecil Saat Ini</div>
+              </div>
+              <div className="stat-value">{formatRupiah(kasKecilSaldo)}</div>
             </div>
             <table className="data-table">
               <thead>
@@ -377,24 +428,26 @@ const PengeluaranOps = () => {
                   <th>Keterangan</th>
                   <th>Jenis</th>
                   <th style={{ textAlign: 'right' }}>Jumlah</th>
-                  <th>COA</th>
+                  <th>COA Lawan</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>2026-07-12</td>
-                  <td>Beli Kertas A4 & Materai</td>
-                  <td>Keluar</td>
-                  <td style={{ textAlign: 'right', color: '#ef4444' }}>Rp 120.000</td>
-                  <td>502.03.000.000</td>
-                </tr>
-                <tr>
-                  <td>2026-07-11</td>
-                  <td>Konsumsi Rapat Lapangan</td>
-                  <td>Keluar</td>
-                  <td style={{ textAlign: 'right', color: '#ef4444' }}>Rp 350.000</td>
-                  <td>502.03.000.000</td>
-                </tr>
+                {kasKecilMutasi.length === 0 && (
+                  <tr><td colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: '20px' }}>Belum ada mutasi Kas Kecil</td></tr>
+                )}
+                {kasKecilMutasi
+                  .filter(m => (m.keterangan || '').toLowerCase().includes(searchTerm.toLowerCase()))
+                  .map(m => (
+                    <tr key={m.key}>
+                      <td>{new Date(m.tgl).toLocaleString('id-ID')}</td>
+                      <td>{m.keterangan}</td>
+                      <td>{m.jenis}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 600, color: m.jenis === 'Keluar' ? '#ef4444' : '#10b981' }}>
+                        {m.jenis === 'Keluar' ? '- ' : '+ '}{formatRupiah(m.jumlah)}
+                      </td>
+                      <td>{m.coaLawan || '-'}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

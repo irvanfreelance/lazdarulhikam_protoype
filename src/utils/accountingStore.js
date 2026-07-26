@@ -28,6 +28,7 @@ export const COAS_ALL = {
   '300.01.001.000': '300.01.001.000 (Dana Kesehatan)',
   '300.01.002.000': '300.01.002.000 (Dana Kemanusiaan)',
   '300.02.001.000': '300.02.001.000 (Zakat Profesi & Maal)',
+  '300.09.000.000': '300.09.000.000 (Ikhtisar Surplus/Defisit Tahun Berjalan)',
   
   // Revenues (4xx)
   '401.01.001.000': '401.01.001.000 (Donasi Kesehatan Individu)',
@@ -217,6 +218,43 @@ const defaultAnggaranItems = [
   { campaign: 'Beasiswa Santri Tahfidz', anggaran: 40000000, realisasi: 25000000 }
 ];
 
+// Bukti Realisasi (proof-of-disbursement records)
+const defaultBuktiRealisasi = [];
+
+// Master Kurs Valas (daily FX rates)
+const defaultKursValas = [
+  { id: '1', mata_uang: 'USD', kurs: 16250, tgl_update: '2026-07-26' },
+  { id: '2', mata_uang: 'EUR', kurs: 17600, tgl_update: '2026-07-26' }
+];
+
+// Report Settings (Pengaturan Laporan — CALK notes & report row mapping)
+const defaultReportRows = [
+  { id: 1, report: 'LPK', kode: 'LPK-01', nama: 'Kas dan Setara Kas', coa: '101.xx', sort: 1, active: true },
+  { id: 2, report: 'LPK', kode: 'LPK-02', nama: 'Piutang Usaha', coa: '103.xx', sort: 2, active: true },
+  { id: 3, report: 'LPK', kode: 'LPK-03', nama: 'Aset Tetap (Bersih)', coa: '102.xx', sort: 3, active: true },
+  { id: 4, report: 'LPK', kode: 'LPK-04', nama: 'Hutang Usaha', coa: '201.xx', sort: 4, active: true },
+  { id: 5, report: 'LPK', kode: 'LPK-05', nama: 'Dana Tidak Terikat', coa: '300.01', sort: 5, active: true },
+  { id: 6, report: 'LPK', kode: 'LPK-06', nama: 'Dana Terikat Sementara', coa: '300.02', sort: 6, active: true },
+  { id: 7, report: 'LPK', kode: 'LPK-07', nama: 'Dana Terikat Permanen', coa: '300.03', sort: 7, active: true },
+  { id: 8, report: 'LPO', kode: 'LPO-01', nama: 'Donasi Kesehatan', coa: '401.01', sort: 1, active: true },
+  { id: 9, report: 'LPO', kode: 'LPO-02', nama: 'Donasi Bencana', coa: '401.02', sort: 2, active: true },
+  { id: 10, report: 'LPO', kode: 'LPO-03', nama: 'Sedekah Pangan', coa: '401.04', sort: 3, active: true },
+  { id: 11, report: 'LPO', kode: 'LPO-04', nama: 'Zakat Profesi & Maal', coa: '401.05', sort: 4, active: true },
+  { id: 12, report: 'LPO', kode: 'LPO-05', nama: 'Biaya Penyaluran Program', coa: '501.xx', sort: 5, active: true },
+  { id: 13, report: 'LPO', kode: 'LPO-06', nama: 'Biaya Operasional', coa: '502.xx', sort: 6, active: true },
+  { id: 14, report: 'LAK', kode: 'LAK-01', nama: 'Arus Kas Operasi', coa: '401-502', sort: 1, active: true },
+  { id: 15, report: 'LAK', kode: 'LAK-02', nama: 'Arus Kas Investasi', coa: '102.xx', sort: 2, active: true },
+  { id: 16, report: 'LAK', kode: 'LAK-03', nama: 'Arus Kas Pendanaan', coa: '300.xx', sort: 3, active: true }
+];
+
+const defaultCalkNotes = [
+  { id: 1, nomor: 1, judul: 'Gambaran Umum Organisasi', periode: 'TA 2026', isi: 'LAZ Darul Hikam adalah Lembaga Amil Zakat yang bergerak di bidang penghimpunan dan penyaluran dana zakat, infaq, sedekah, dan dana sosial kemanusiaan lainnya. Didirikan berdasarkan akta notaris ...', status: 'draft' },
+  { id: 2, nomor: 2, judul: 'Ikhtisar Kebijakan Akuntansi', periode: 'TA 2026', isi: 'Laporan keuangan disusun berdasarkan PSAK 45 tentang Pelaporan Keuangan Organisasi Nirlaba. Dasar penyusunan menggunakan basis akrual ...', status: 'final' },
+  { id: 3, nomor: 3, judul: 'Kas dan Setara Kas', periode: 'TA 2026', isi: 'Kas dan setara kas terdiri dari kas di tangan, rekening giro, dan simpanan jangka pendek yang jatuh tempo dalam 3 bulan. Rincian per rekening bank ...', status: 'draft' },
+  { id: 4, nomor: 4, judul: 'Aset Tetap', periode: 'TA 2026', isi: 'Aset tetap dicatat pada harga perolehan dikurangi akumulasi penyusutan. Penyusutan dihitung menggunakan metode garis lurus ...', status: 'final' },
+  { id: 5, nomor: 5, judul: 'Dana Terikat', periode: 'TA 2026', isi: 'Dana terikat sementara terdiri dari sumbangan donor yang penggunaannya dibatasi oleh pemberi untuk tujuan tertentu. Dana terikat permanen berupa wakaf tanah dan gedung ...', status: 'draft' }
+];
+
 // --- HELPER WRITERS ---
 const getStorageItem = (key, defaultVal) => {
   const saved = localStorage.getItem(key);
@@ -254,7 +292,11 @@ export const getAccountingData = () => {
     zakatAmilFee: getStorageItem('laz_zakat_amil_fee', defaultZakatAmilFee),
     qurbanAnimals: getStorageItem('laz_qurban_animals', defaultQurbanAnimals),
     grantReports: getStorageItem('laz_grant_reports', defaultGrantReports),
-    anggaranItems: getStorageItem('laz_anggaran_items', defaultAnggaranItems)
+    anggaranItems: getStorageItem('laz_anggaran_items', defaultAnggaranItems),
+    buktiRealisasi: getStorageItem('laz_bukti_realisasi', defaultBuktiRealisasi),
+    kursValas: getStorageItem('laz_kurs_valas', defaultKursValas),
+    reportRows: getStorageItem('laz_report_rows', defaultReportRows),
+    calkNotes: getStorageItem('laz_calk_notes', defaultCalkNotes)
   };
 };
 
@@ -465,7 +507,7 @@ export const settleCashAdvanceAction = (advanceId, realisasi, kembalian) => {
 // 5. Depreciation schedule post trigger (AJE)
 export const postDepreciationAction = (assetId, monthlyDep) => {
   const data = getAccountingData();
-  
+
   const ajeId = String(data.jurnalPenyesuaian.length + 1);
   const newAje = {
     id: ajeId,
@@ -480,7 +522,21 @@ export const postDepreciationAction = (assetId, monthlyDep) => {
     approved_at: new Date().toISOString()
   };
 
+  // Reduce the asset's own book value (nilai_buku) by the posted depreciation
+  const updatedAssets = data.assets.map(a => {
+    if (a.id === assetId) {
+      const newNilaiBuku = Math.max(0, (a.nilai_buku ?? a.harga_perolehan) - monthlyDep);
+      return {
+        ...a,
+        nilai_buku: newNilaiBuku,
+        status: newNilaiBuku <= 0 ? 'fully_depreciated' : a.status
+      };
+    }
+    return a;
+  });
+
   setStorageItem('laz_jurnal_penyesuaian', [newAje, ...data.jurnalPenyesuaian]);
+  setStorageItem('laz_assets', updatedAssets);
 };
 
 // 6. Internal bank transfer completion trigger
@@ -562,7 +618,45 @@ export const executeInternalTransferAction = (transferId) => {
   setStorageItem('laz_saldo', updatedSaldo);
 };
 
-// 7. Payroll disburse trigger
+// 7. Purchase Order settlement (pay off outstanding balance after DP)
+export const payPurchaseOrderAction = (poId, coaBayar) => {
+  const data = getAccountingData();
+  const poIndex = data.purchaseOrders.findIndex(po => po.id === poId);
+  if (poIndex === -1) return;
+
+  const po = data.purchaseOrders[poIndex];
+  if (po.status === 'paid') return;
+
+  const outstanding = po.total_amount - (po.dp_amount || 0);
+  const vendor = data.vendors.find(v => v.id === po.vendor_id);
+
+  const transId = generateIdTrans('POB');
+  const newTransaction = {
+    id: String(data.pengeluaran.length + 1),
+    id_trans: transId,
+    tgl: new Date().toISOString(),
+    vendor: vendor?.nama_vendor || po.judul,
+    kategori: vendor?.kategori || 'barang',
+    coa: '201.03.000.000', // Hutang Usaha settled
+    nominal: outstanding,
+    status: 'PAID',
+    coa_bayar: coaBayar,
+    note: `Pelunasan ${po.nomor_po} - ${po.judul}`
+  };
+
+  const updatedSaldo = data.saldo.map(acc =>
+    acc.coa === coaBayar ? { ...acc, saldo: acc.saldo - outstanding } : acc
+  );
+
+  const updatedPOs = [...data.purchaseOrders];
+  updatedPOs[poIndex] = { ...po, status: 'paid', dp_amount: po.total_amount, tgl_lunas: new Date().toISOString().substring(0, 10) };
+
+  setStorageItem('laz_purchase_orders', updatedPOs);
+  setStorageItem('laz_pengeluaran', [newTransaction, ...data.pengeluaran]);
+  setStorageItem('laz_saldo', updatedSaldo);
+};
+
+// 8. Payroll disburse trigger
 export const disbursePayrollAction = (periodId, totalPayroll) => {
   const data = getAccountingData();
   const pIndex = data.payrollPeriods.findIndex(p => p.id === periodId);

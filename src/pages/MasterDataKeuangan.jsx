@@ -1,13 +1,96 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Database, Plus, Search, FolderTree, Landmark, Settings
 } from 'lucide-react';
-import { getAccountingData, formatRupiah, COAS_ALL } from '../utils/accountingStore';
+import { getAccountingData, formatRupiah, updateAccountingData, COAS_ALL } from '../utils/accountingStore';
 
 const MasterDataKeuangan = () => {
   const [activeTab, setActiveTab] = useState('Chart of Accounts');
   const [searchTerm, setSearchTerm] = useState('');
   const [data, setData] = useState(() => getAccountingData());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formFields, setFormFields] = useState({});
+
+  const reloadData = () => setData(getAccountingData());
+
+  useEffect(() => {
+    reloadData();
+  }, [activeTab]);
+
+  const openAddRekening = () => {
+    setFormFields({ coa: '', nama: '', saldo: '' });
+    setIsModalOpen(true);
+  };
+
+  const handleSaveRekening = (e) => {
+    e.preventDefault();
+    const store = getAccountingData();
+    const newAcc = {
+      coa: formFields.coa,
+      nama: formFields.nama,
+      saldo: parseFloat(formFields.saldo) || 0
+    };
+    updateAccountingData('laz_saldo', [...store.saldo, newAcc]);
+    setIsModalOpen(false);
+    reloadData();
+  };
+
+  const openAddKurs = () => {
+    setFormFields({ mata_uang: 'USD', kurs: '' });
+    setIsModalOpen(true);
+  };
+
+  const handleSaveKurs = (e) => {
+    e.preventDefault();
+    const store = getAccountingData();
+    const existingIdx = store.kursValas.findIndex(k => k.mata_uang === formFields.mata_uang);
+    const today = new Date().toISOString().substring(0, 10);
+    let updated;
+    if (existingIdx >= 0) {
+      updated = [...store.kursValas];
+      updated[existingIdx] = { ...updated[existingIdx], kurs: parseFloat(formFields.kurs) || 0, tgl_update: today };
+    } else {
+      updated = [...store.kursValas, { id: String(store.kursValas.length + 1), mata_uang: formFields.mata_uang, kurs: parseFloat(formFields.kurs) || 0, tgl_update: today }];
+    }
+    updateAccountingData('laz_kurs_valas', updated);
+    setIsModalOpen(false);
+    reloadData();
+  };
+
+  // Mapping Saldo Dana — same restricted-fund calculation used in LaporanPSAK45.jsx, kept in sync
+  const totalRevenueUnrestricted = data.penerimaan
+    .filter(p => p.status === 'PAID' && (p.coa.startsWith('401.07') || p.coa.startsWith('401.01') || p.coa.startsWith('401.04')))
+    .reduce((sum, p) => sum + p.nominal, 0);
+  const totalExpenseUnrestricted = data.pengeluaran
+    .filter(p => p.status === 'PAID')
+    .reduce((sum, p) => sum + p.nominal, 0);
+  const totalRevenueRestricted = data.penerimaan
+    .filter(p => p.status === 'PAID' && (p.coa.startsWith('401.02') || p.coa.startsWith('401.05') || p.coa.startsWith('401.08')))
+    .reduce((sum, p) => sum + p.nominal, 0);
+
+  const danaMapping = [
+    {
+      coa: '300.06.000.000',
+      kategori: 'Tidak Terikat (Unrestricted)',
+      mappingPenerimaan: '401.01, 401.04, 401.07',
+      mappingPengeluaran: 'Seluruh 5xx (beban operasional)',
+      saldo: 100000000 + totalRevenueUnrestricted - totalExpenseUnrestricted
+    },
+    {
+      coa: '300.07.000.000',
+      kategori: 'Terikat Sementara (Temporarily Restricted)',
+      mappingPenerimaan: '401.02, 401.05, 401.08',
+      mappingPengeluaran: 'Direalisasikan sesuai program terikat',
+      saldo: 200000000 + totalRevenueRestricted
+    },
+    {
+      coa: '300.08.000.000',
+      kategori: 'Terikat Permanen (Wakaf/Endowment)',
+      mappingPenerimaan: 'Wakaf & Endowment',
+      mappingPengeluaran: 'Tidak boleh direalisasikan (pokok abadi)',
+      saldo: 50000000
+    }
+  ];
 
   return (
     <div className="content-area">
@@ -16,14 +99,28 @@ const MasterDataKeuangan = () => {
           <h1>Master Data Keuangan</h1>
           <p>Konfigurasi Chart of Accounts (COA), data bank organisasi, rekening kas, dan mapping dana PSAK 45</p>
         </div>
+        {activeTab === 'Bank & Rekening' && (
+          <div>
+            <button className="btn btn-primary" onClick={openAddRekening}>
+              <Plus size={16} /> Tambah Rekening
+            </button>
+          </div>
+        )}
+        {activeTab === 'Master Kurs Valas' && (
+          <div>
+            <button className="btn btn-primary" onClick={openAddKurs}>
+              <Plus size={16} /> Tambah / Update Kurs
+            </button>
+          </div>
+        )}
       </div>
 
       {/* TABS */}
       <div className="tabs-container">
         <div className="tabs-list">
           {['Chart of Accounts', 'Bank & Rekening', 'Mapping Saldo Dana', 'Master Kurs Valas'].map(tab => (
-            <div 
-              key={tab} 
+            <div
+              key={tab}
               className={`tab-item ${activeTab === tab ? 'active' : ''}`}
               onClick={() => { setActiveTab(tab); setSearchTerm(''); }}
             >
@@ -39,11 +136,11 @@ const MasterDataKeuangan = () => {
         <div className="filters-right">
           <div className="filter-input">
             <Search size={16} />
-            <input 
-              type="text" 
-              placeholder="Cari..." 
-              value={searchTerm} 
-              onChange={e => setSearchTerm(e.target.value)} 
+            <input
+              type="text"
+              placeholder="Cari..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
@@ -115,7 +212,9 @@ const MasterDataKeuangan = () => {
                 </tr>
               </thead>
               <tbody>
-                {data.saldo.map((acc, idx) => (
+                {data.saldo
+                  .filter(acc => acc.nama.toLowerCase().includes(searchTerm.toLowerCase()) || acc.coa.includes(searchTerm))
+                  .map((acc, idx) => (
                   <tr key={idx}>
                     <td>{idx + 1}</td>
                     <td style={{ fontWeight: 600 }}>{acc.nama}</td>
@@ -137,27 +236,19 @@ const MasterDataKeuangan = () => {
                 <th>Kategori Dana</th>
                 <th>Mapping Akun Penerimaan (4xx)</th>
                 <th>Mapping Akun Pengeluaran (5xx)</th>
+                <th style={{ textAlign: 'right' }}>Saldo Saat Ini</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>300.01.001.000</td>
-                <td>Dana Kesehatan</td>
-                <td>401.01.001.000 (Donasi Kes. Individu)</td>
-                <td>501.01.000.000 (Beban Kes.)</td>
-              </tr>
-              <tr>
-                <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>300.01.002.000</td>
-                <td>Dana Kemanusiaan</td>
-                <td>401.02.001.000 (Donasi Bencana)</td>
-                <td>501.02.000.000 (Beban Kemanusiaan)</td>
-              </tr>
-              <tr>
-                <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>300.02.001.000</td>
-                <td>Zakat Profesi & Maal</td>
-                <td>401.05.001.000 (Penerimaan Zakat)</td>
-                <td>501.05.000.000 (Penyaluran Zakat)</td>
-              </tr>
+              {danaMapping.map((m, idx) => (
+                <tr key={idx}>
+                  <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{m.coa}</td>
+                  <td>{m.kategori}</td>
+                  <td>{m.mappingPenerimaan}</td>
+                  <td>{m.mappingPengeluaran}</td>
+                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatRupiah(m.saldo)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
@@ -166,49 +257,95 @@ const MasterDataKeuangan = () => {
           <div>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
               <Database size={20} color="#64748b" />
-              <strong style={{ fontSize: '0.95rem' }}>Data Kurs Harian Valuta Asing (IDR)</strong>
+              <strong style={{ fontSize: '0.95rem' }}>Data Kurs Valuta Asing (IDR)</strong>
             </div>
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Tanggal Berubah</th>
+                  <th>Tanggal Update</th>
                   <th>Mata Uang</th>
-                  <th style={{ textAlign: 'right' }}>Kurs Beli</th>
-                  <th style={{ textAlign: 'right' }}>Kurs Tengah (BI)</th>
-                  <th style={{ textAlign: 'right' }}>Kurs Jual</th>
-                  <th>Status Aktif</th>
+                  <th style={{ textAlign: 'right' }}>Kurs (IDR)</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>2026-07-26</td>
-                  <td style={{ fontWeight: 600 }}>USD (Dolar AS)</td>
-                  <td style={{ textAlign: 'right' }}>{formatRupiah(16200)}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatRupiah(16250)}</td>
-                  <td style={{ textAlign: 'right' }}>{formatRupiah(16300)}</td>
-                  <td><span className="status-badge status-success">AKTIF</span></td>
-                </tr>
-                <tr>
-                  <td>2026-07-26</td>
-                  <td style={{ fontWeight: 600 }}>EUR (Euro)</td>
-                  <td style={{ textAlign: 'right' }}>{formatRupiah(17600)}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatRupiah(17650)}</td>
-                  <td style={{ textAlign: 'right' }}>{formatRupiah(17700)}</td>
-                  <td><span className="status-badge status-success">AKTIF</span></td>
-                </tr>
-                <tr>
-                  <td>2026-07-25</td>
-                  <td style={{ fontWeight: 600 }}>USD (Dolar AS)</td>
-                  <td style={{ textAlign: 'right' }}>{formatRupiah(16150)}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatRupiah(16200)}</td>
-                  <td style={{ textAlign: 'right' }}>{formatRupiah(16250)}</td>
-                  <td><span className="status-badge status-warning">ARCHIVED</span></td>
-                </tr>
+                {data.kursValas.map((k, idx) => (
+                  <tr key={idx}>
+                    <td>{k.tgl_update}</td>
+                    <td style={{ fontWeight: 600 }}>{k.mata_uang}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatRupiah(k.kurs)}</td>
+                    <td><span className="status-badge status-success">AKTIF</span></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
+      {/* MODAL: TAMBAH REKENING */}
+      {isModalOpen && activeTab === 'Bank & Rekening' && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '28px', borderRadius: '16px', width: '460px', maxWidth: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Tambah Rekening Bank/Kas</h2>
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveRekening}>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Kode COA</label>
+                <input type="text" required placeholder="cth. 101.02.008.000" style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontFamily: 'monospace' }}
+                  value={formFields.coa || ''} onChange={e => setFormFields({ ...formFields, coa: e.target.value })} />
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Nama Rekening</label>
+                <input type="text" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  value={formFields.nama || ''} onChange={e => setFormFields({ ...formFields, nama: e.target.value })} />
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Saldo Awal (Rp)</label>
+                <input type="number" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  value={formFields.saldo || ''} onChange={e => setFormFields({ ...formFields, saldo: e.target.value })} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={() => setIsModalOpen(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: TAMBAH/UPDATE KURS */}
+      {isModalOpen && activeTab === 'Master Kurs Valas' && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '28px', borderRadius: '16px', width: '420px', maxWidth: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Update Kurs Valas</h2>
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveKurs}>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Mata Uang</label>
+                <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  value={formFields.mata_uang || 'USD'} onChange={e => setFormFields({ ...formFields, mata_uang: e.target.value })}>
+                  <option value="USD">USD (Dolar AS)</option>
+                  <option value="EUR">EUR (Euro)</option>
+                </select>
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Kurs (IDR)</label>
+                <input type="number" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  value={formFields.kurs || ''} onChange={e => setFormFields({ ...formFields, kurs: e.target.value })} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={() => setIsModalOpen(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -9,26 +9,45 @@ const MonitoringSistem = () => {
   const [data, setData] = useState(() => getAccountingData());
   const [generateDepreciation, setGenerateDepreciation] = useState(true);
   const [generateReversing, setGenerateReversing] = useState(false);
+  const [selectedPeriodId, setSelectedPeriodId] = useState('');
+  const [selectedYear, setSelectedYear] = useState('2026');
+
+  const reloadData = () => setData(getAccountingData());
+
+  const openPeriods = data.accountingPeriods.filter(p => p.status === 'open');
+  useEffect(() => {
+    if (!selectedPeriodId && openPeriods.length > 0) {
+      setSelectedPeriodId(openPeriods[0].id);
+    }
+  }, [data.accountingPeriods]);
+
+  const yearEndDone = data.jurnalPenyesuaian.some(aje => aje.keterangan.includes(`Jurnal Penutup Tahunan ${selectedYear}`));
 
   const handleTutupBukuBulanan = () => {
-    let message = 'Periode berhasil dikunci. Transaksi backdated sudah tidak diizinkan.';
+    const period = data.accountingPeriods.find(p => p.id === selectedPeriodId);
+    if (!period) { alert('Pilih periode yang akan ditutup terlebih dahulu.'); return; }
+    if (!window.confirm(`Yakin ingin menutup buku periode ${period.nama_periode}? Transaksi backdated tidak akan bisa diubah lagi.`)) return;
+
     const store = getAccountingData();
     let newAje = [...store.jurnalPenyesuaian];
+    let message = `Periode ${period.nama_periode} berhasil dikunci. Transaksi backdated sudah tidak diizinkan.`;
 
     if (generateDepreciation) {
-      // Simulate auto-depreciation for active assets
+      // Auto-depreciation for active assets, posted straight-line for the period
       store.assets.forEach(asset => {
         if (asset.status === 'aktif') {
           const bebanPenyusutan = Math.round(asset.harga_perolehan / asset.masa_manfaat);
           newAje.push({
             id: String(newAje.length + 1),
-            period: 'Juli 2026',
+            period: period.nama_periode,
             tgl: new Date().toISOString().substring(0, 10),
+            jenis_aje: 'depresiasi',
             keterangan: `Penyusutan Otomatis: ${asset.nama_aset}`,
             coa_debet: '502.04.000.000', // Beban Penyusutan
             coa_kredit: '102.01.001.000', // Akumulasi Penyusutan
             nominal: bebanPenyusutan,
             status: 'posted',
+            nik_input: 'SYSTEM',
             approved_by: 'SYSTEM',
             approved_at: new Date().toISOString().substring(0, 10)
           });
@@ -38,13 +57,76 @@ const MonitoringSistem = () => {
     }
 
     if (generateReversing) {
-      // Simulate reversing entries (mock)
-      message += '\n✅ Jurnal Pembalik (Reversing Entries) untuk akrual telah di-generate untuk tanggal 1 bulan berikutnya.';
+      // Reverse accrual (akrual) entries booked in the period being closed
+      const accruals = store.jurnalPenyesuaian.filter(aje => aje.jenis_aje === 'akrual' && aje.period === period.nama_periode);
+      accruals.forEach(aje => {
+        newAje.push({
+          id: String(newAje.length + 1),
+          period: period.nama_periode,
+          tgl: new Date().toISOString().substring(0, 10),
+          jenis_aje: 'balik',
+          keterangan: `Jurnal Pembalik: ${aje.keterangan}`,
+          coa_debet: aje.coa_kredit,
+          coa_kredit: aje.coa_debet,
+          nominal: aje.nominal,
+          status: 'posted',
+          nik_input: 'SYSTEM',
+          approved_by: 'SYSTEM',
+          approved_at: new Date().toISOString().substring(0, 10)
+        });
+      });
+      message += accruals.length > 0
+        ? `\n✅ ${accruals.length} Jurnal Pembalik (Reversing Entries) untuk akrual telah di-generate untuk tanggal 1 bulan berikutnya.`
+        : '\n⚠️ Tidak ada jurnal akrual pada periode ini yang perlu dibalik.';
     }
 
+    const updatedPeriods = store.accountingPeriods.map(p => p.id === period.id ? {
+      ...p,
+      status: 'closed',
+      closed_at: new Date().toISOString().substring(0, 10),
+      closing_summary: `Ditutup dari Monitoring Sistem${generateDepreciation ? ' — termasuk penyusutan otomatis' : ''}${generateReversing ? ' — termasuk jurnal pembalik' : ''}.`
+    } : p);
+
     updateAccountingData('laz_jurnal_penyesuaian', newAje);
+    updateAccountingData('laz_accounting_periods', updatedPeriods);
     alert(message);
-    setData(getAccountingData());
+    reloadData();
+  };
+
+  const handleYearEndClosing = () => {
+    if (yearEndDone) { alert(`Year-End Closing ${selectedYear} sudah pernah dijalankan.`); return; }
+    if (!window.confirm(`Jalankan Year-End Closing ${selectedYear}? Seluruh saldo akun Pendapatan & Beban akan dipindahkan ke Aset Bersih.`)) return;
+
+    const store = getAccountingData();
+    const totalPenerimaan = store.penerimaan.filter(p => p.status === 'PAID').reduce((s, p) => s + p.nominal, 0);
+    const totalPengeluaran = store.pengeluaran.filter(p => p.status === 'PAID').reduce((s, p) => s + p.nominal, 0);
+    const netIncome = totalPenerimaan - totalPengeluaran;
+
+    const closingAje = {
+      id: String(store.jurnalPenyesuaian.length + 1),
+      period: `Tahun ${selectedYear}`,
+      tgl: new Date().toISOString().substring(0, 10),
+      jenis_aje: 'penutup',
+      keterangan: `Jurnal Penutup Tahunan ${selectedYear}: Pemindahan ${netIncome >= 0 ? 'Surplus' : 'Defisit'} ke Aset Bersih Tidak Terikat`,
+      coa_debet: netIncome >= 0 ? '300.09.000.000' : '300.06.000.000',
+      coa_kredit: netIncome >= 0 ? '300.06.000.000' : '300.09.000.000',
+      nominal: Math.abs(netIncome),
+      nik_input: 'SYSTEM',
+      approved_by: 'SYSTEM',
+      approved_at: new Date().toISOString()
+    };
+
+    const updatedPeriods = store.accountingPeriods.map(p => p.nama_periode.endsWith(selectedYear) ? {
+      ...p,
+      status: 'closed',
+      closed_at: new Date().toISOString().substring(0, 10),
+      closing_summary: `Year-End Closing ${selectedYear}: ${netIncome >= 0 ? 'Surplus' : 'Defisit'} ${formatRupiah(netIncome)}`
+    } : p);
+
+    updateAccountingData('laz_jurnal_penyesuaian', [closingAje, ...store.jurnalPenyesuaian]);
+    updateAccountingData('laz_accounting_periods', updatedPeriods);
+    alert(`Year-End Closing ${selectedYear} selesai. ${netIncome >= 0 ? 'Surplus' : 'Defisit'} sebesar ${formatRupiah(Math.abs(netIncome))} telah dipindahkan ke Aset Bersih Tidak Terikat.`);
+    reloadData();
   };
 
   return (
@@ -161,10 +243,17 @@ const MonitoringSistem = () => {
                 </p>
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Periode yang Akan Ditutup:</label>
-                  <select style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px' }}>
-                    <option>Juli 2026</option>
+                  <select
+                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px', marginBottom: '16px' }}
+                    value={selectedPeriodId}
+                    onChange={e => setSelectedPeriodId(e.target.value)}
+                  >
+                    {openPeriods.length === 0 && <option value="">Tidak ada periode terbuka</option>}
+                    {openPeriods.map(p => (
+                      <option key={p.id} value={p.id}>{p.nama_periode}</option>
+                    ))}
                   </select>
-                  
+
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                     <input type="checkbox" id="depreciation" checked={generateDepreciation} onChange={e => setGenerateDepreciation(e.target.checked)} />
                     <label htmlFor="depreciation" style={{ fontSize: '0.85rem' }}>Otomatis Jurnal Penyusutan Aset Tetap (Auto-Depreciation)</label>
@@ -174,8 +263,8 @@ const MonitoringSistem = () => {
                     <label htmlFor="reversing" style={{ fontSize: '0.85rem' }}>Generate Jurnal Pembalik (Reversing Entries) tgl 1 Bln Depan</label>
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleTutupBukuBulanan}>
-                  Kunci Periode Juli 2026
+                <button className="btn btn-primary" style={{ width: '100%' }} disabled={openPeriods.length === 0} onClick={handleTutupBukuBulanan}>
+                  {openPeriods.length === 0 ? 'Tidak Ada Periode Terbuka' : `Kunci Periode ${data.accountingPeriods.find(p => p.id === selectedPeriodId)?.nama_periode || ''}`}
                 </button>
               </div>
 
@@ -188,12 +277,22 @@ const MonitoringSistem = () => {
                 </p>
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Tahun yang Akan Ditutup:</label>
-                  <select style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-                    <option>2026</option>
+                  <select
+                    style={{ width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                    value={selectedYear}
+                    onChange={e => setSelectedYear(e.target.value)}
+                  >
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
                   </select>
                 </div>
-                <button className="btn btn-primary" style={{ width: '100%', background: '#8b5cf6', borderColor: '#8b5cf6' }} onClick={() => alert('Proses Year-End Closing dimulai. Saldo L/R sedang di-nol-kan dan dipindah ke Aset Bersih.')}>
-                  Jalankan Year-End Closing 2026
+                <button
+                  className="btn btn-primary"
+                  style={{ width: '100%', background: '#8b5cf6', borderColor: '#8b5cf6' }}
+                  disabled={yearEndDone}
+                  onClick={handleYearEndClosing}
+                >
+                  {yearEndDone ? `Year-End Closing ${selectedYear} Selesai` : `Jalankan Year-End Closing ${selectedYear}`}
                 </button>
               </div>
             </div>

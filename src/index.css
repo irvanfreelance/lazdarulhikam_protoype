@@ -633,6 +633,14 @@ body {
   background: #fef3c7;
   color: var(--warning-color);
 }
+.status-info {
+  background: #dbeafe;
+  color: #2563eb;
+}
+.status-danger {
+  background: #fee2e2;
+  color: #ef4444;
+}
 
 .action-buttons {
   display: flex;

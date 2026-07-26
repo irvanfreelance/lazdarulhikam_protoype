@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Gift, Calendar, CheckSquare, Search, Plus, Filter, ArrowDownCircle
+import {
+  Gift, Calendar, CheckSquare, Search, Plus, Filter, ArrowDownCircle, Send
 } from 'lucide-react';
 import { getAccountingData, formatRupiah, updateAccountingData, generateIdTrans } from '../utils/accountingStore';
+
+const KURS = { USD: 16250, EUR: 17600, IDR: 1 };
 
 const GrantHibah = () => {
   const [activeTab, setActiveTab] = useState('Master Grant');
   const [searchTerm, setSearchTerm] = useState('');
   const [data, setData] = useState(() => getAccountingData());
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formFields, setFormFields] = useState({});
 
   const reloadData = () => {
     setData(getAccountingData());
@@ -16,6 +20,49 @@ const GrantHibah = () => {
   useEffect(() => {
     reloadData();
   }, [activeTab]);
+
+  const openAddGrantModal = () => {
+    setFormFields({ donor: '', program: '', currency: 'IDR', nilai_valas: '', total_grant: '', jenis_dana: 'terikat_sementara' });
+    setIsModalOpen(true);
+  };
+
+  const handleSaveGrant = (e) => {
+    e.preventDefault();
+    const store = getAccountingData();
+    const currency = formFields.currency || 'IDR';
+    const isForeign = currency !== 'IDR';
+    const totalGrant = isForeign
+      ? (parseFloat(formFields.nilai_valas) || 0) * KURS[currency]
+      : parseFloat(formFields.total_grant) || 0;
+
+    const newGrant = {
+      id: String(store.grants.length + 1),
+      donor: formFields.donor,
+      program: formFields.program,
+      currency,
+      nilai_valas: isForeign ? parseFloat(formFields.nilai_valas) || 0 : 0,
+      kurs: isForeign ? KURS[currency] : 1,
+      total_grant: totalGrant,
+      terpakai: 0,
+      jenis_dana: formFields.jenis_dana,
+      status: 'aktif'
+    };
+
+    updateAccountingData('laz_grants', [...store.grants, newGrant]);
+    setIsModalOpen(false);
+    reloadData();
+  };
+
+  const handleSubmitLpj = (report) => {
+    const store = getAccountingData();
+    const updated = store.grantReports.map(r =>
+      (r.grant_nama === report.grant_nama && r.jenis_laporan === report.jenis_laporan)
+        ? { ...r, status: 'submitted', submitted_at: new Date().toISOString().substring(0, 10) }
+        : r
+    );
+    updateAccountingData('laz_grant_reports', updated);
+    reloadData();
+  };
 
   const handleCairkanTermin = (disbId) => {
     const store = getAccountingData();
@@ -67,6 +114,13 @@ const GrantHibah = () => {
           <h1>Penerimaan Grant & Hibah</h1>
           <p>Mencatat beasiswa/dana terikat dari institusi donor, milestone pencairan termin, dan laporan pertanggungjawaban (LPJ)</p>
         </div>
+        {activeTab === 'Master Grant' && (
+          <div>
+            <button className="btn btn-primary" onClick={openAddGrantModal}>
+              <Plus size={16} /> Tambah Grant
+            </button>
+          </div>
+        )}
       </div>
 
       {/* STATS */}
@@ -133,10 +187,10 @@ const GrantHibah = () => {
               {data.grants
                 .filter(g => g.donor.toLowerCase().includes(searchTerm.toLowerCase()))
                 .map((g, idx) => {
-                  const isForeign = g.donor.includes('UNICEF') || g.donor.includes('Islamic Development Bank');
-                  const currency = isForeign ? 'USD' : 'IDR';
-                  const valas = isForeign ? g.total_grant / 16250 : 0;
-                  
+                  const currency = g.currency || (g.donor.includes('UNICEF') || g.donor.includes('Islamic Development Bank') ? 'USD' : 'IDR');
+                  const isForeign = currency !== 'IDR';
+                  const valas = g.nilai_valas || (isForeign ? g.total_grant / KURS[currency] : 0);
+
                   return (
                     <tr key={idx}>
                       <td style={{ fontWeight: 600 }}>{g.donor}</td>
@@ -211,18 +265,36 @@ const GrantHibah = () => {
                 <th>Donor</th>
                 <th>Laporan LPJ</th>
                 <th>Batas Pengiriman</th>
+                <th>Tgl Dikirim</th>
                 <th>Status Laporan</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td style={{ fontWeight: 500 }}>Astra Foundation</td>
-                <td>Laporan Keuangan Tahap 1 Beasiswa Dhuafa</td>
-                <td>2026-08-30</td>
-                <td>
-                  <span className="status-badge status-warning">SEDANG DIREVIEW</span>
-                </td>
-              </tr>
+              {data.grantReports
+                .filter(r => r.pemberi.toLowerCase().includes(searchTerm.toLowerCase()) || r.grant_nama.toLowerCase().includes(searchTerm.toLowerCase()))
+                .map((r, idx) => (
+                  <tr key={idx}>
+                    <td style={{ fontWeight: 500 }}>{r.pemberi}</td>
+                    <td>{r.grant_nama} — {r.jenis_laporan}</td>
+                    <td>{r.deadline}</td>
+                    <td>{r.submitted_at || '-'}</td>
+                    <td>
+                      <span className={`status-badge ${r.status === 'accepted' ? 'status-success' : r.status === 'submitted' ? 'status-info' : 'status-warning'}`}>
+                        {r.status === 'accepted' ? 'DITERIMA' : r.status === 'submitted' ? 'SEDANG DIREVIEW' : 'BELUM DIKIRIM'}
+                      </span>
+                    </td>
+                    <td>
+                      {r.status === 'pending' ? (
+                        <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }} onClick={() => handleSubmitLpj(r)}>
+                          <Send size={14} /> Kirim Laporan
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         )}
@@ -261,6 +333,71 @@ const GrantHibah = () => {
           </table>
         )}
       </div>
+
+      {/* MODAL ADD GRANT */}
+      {isModalOpen && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'white', padding: '28px', borderRadius: '16px', width: '500px', maxWidth: '90%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Tambah Grant / Hibah</h2>
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setIsModalOpen(false)}>×</button>
+            </div>
+            <form onSubmit={handleSaveGrant}>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Pemberi Grant (Donor)</label>
+                <input type="text" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  value={formFields.donor || ''} onChange={e => setFormFields({ ...formFields, donor: e.target.value })} />
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Program Kerja</label>
+                <input type="text" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  value={formFields.program || ''} onChange={e => setFormFields({ ...formFields, program: e.target.value })} />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Mata Uang</label>
+                  <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                    value={formFields.currency || 'IDR'} onChange={e => setFormFields({ ...formFields, currency: e.target.value })}>
+                    <option value="IDR">IDR</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>
+                    {formFields.currency && formFields.currency !== 'IDR' ? `Nilai Valas (${formFields.currency})` : 'Total Grant (Rp)'}
+                  </label>
+                  {formFields.currency && formFields.currency !== 'IDR' ? (
+                    <input type="number" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                      value={formFields.nilai_valas || ''} onChange={e => setFormFields({ ...formFields, nilai_valas: e.target.value })} />
+                  ) : (
+                    <input type="number" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                      value={formFields.total_grant || ''} onChange={e => setFormFields({ ...formFields, total_grant: e.target.value })} />
+                  )}
+                </div>
+              </div>
+              {formFields.currency && formFields.currency !== 'IDR' && (
+                <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '14px' }}>
+                  Kurs {formFields.currency}: {formatRupiah(KURS[formFields.currency])} → Setara {formatRupiah((parseFloat(formFields.nilai_valas) || 0) * KURS[formFields.currency])}
+                </p>
+              )}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Klasifikasi PSAK 45</label>
+                <select style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
+                  value={formFields.jenis_dana || 'terikat_sementara'} onChange={e => setFormFields({ ...formFields, jenis_dana: e.target.value })}>
+                  <option value="terikat_sementara">Terikat Sementara</option>
+                  <option value="terikat_permanen">Terikat Permanen</option>
+                  <option value="tidak_terikat">Tidak Terikat</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={() => setIsModalOpen(false)}>Batal</button>
+                <button type="submit" className="btn btn-primary">Simpan</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
