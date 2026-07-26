@@ -18,6 +18,7 @@ import {
   Coins,
   FileCode
 } from 'lucide-react';
+import SearchableSelect from '../components/SearchableSelect';
 import { getAccountingData } from '../utils/accountingStore';
 
 // --- CONFIG & CONSTANTS ---
@@ -1024,37 +1025,34 @@ const TransaksiKeuangan = () => {
                     </div>
                     <div className="form-group">
                       <label>Nama Donatur / Keterangan</label>
-                      <input 
-                        type="text" 
-                        className="form-input" 
+                      <SearchableSelect
+                        options={Array.from(new Set(penerimaan.map(p => p.donatur).filter(Boolean)))
+                          .map(name => ({ value: name, label: name }))}
+                        value={formFields.donatur || ''}
+                        onChange={val => setFormFields(prev => ({ ...prev, donatur: val }))}
                         placeholder="e.g. Budi Santoso / Hamba Allah"
-                        required
-                        value={formFields.donatur || ''} 
-                        onChange={e => setFormFields(prev => ({ ...prev, donatur: e.target.value }))}
+                        allowFreeText
                       />
                     </div>
                     <div className="form-group">
                       <label>Payment Channel</label>
-                      <select 
-                        className="form-select"
+                      <SearchableSelect
+                        options={CHANNELS.map(ch => ({ value: ch, label: ch }))}
                         value={formFields.channel || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, channel: e.target.value }))}
-                      >
-                        {CHANNELS.map(ch => <option key={ch} value={ch}>{ch}</option>)}
-                      </select>
+                        onChange={val => setFormFields(prev => ({ ...prev, channel: val }))}
+                        placeholder="Cari channel..."
+                      />
                     </div>
                     <div className="form-group">
                       <label>Akun Penerimaan (COA)</label>
-                      <select 
-                        className="form-select"
-                        value={formFields.coa || ''}
-                        onChange={e => setFormFields(prev => ({ ...prev, coa: e.target.value }))}
-                      >
-                        {Object.entries(COAS_ALL)
+                      <SearchableSelect
+                        options={Object.entries(COAS_ALL)
                           .filter(([key]) => key.startsWith('401'))
-                          .map(([key, val]) => <option key={key} value={key}>{val}</option>)
-                        }
-                      </select>
+                          .map(([key, val]) => ({ value: key, label: val }))}
+                        value={formFields.coa || ''}
+                        onChange={val => setFormFields(prev => ({ ...prev, coa: val }))}
+                        placeholder="Cari akun COA..."
+                      />
                     </div>
                     <div className="form-group">
                       <label>Nominal (Rp)</label>
