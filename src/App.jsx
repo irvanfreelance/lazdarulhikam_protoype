@@ -2,6 +2,27 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import TransaksiKeuangan from './pages/TransaksiKeuangan';
+import PenyaluranDana from './pages/PenyaluranDana';
+import PengeluaranOps from './pages/PengeluaranOps';
+import AnggaranRealisasi from './pages/AnggaranRealisasi';
+import AsetTetap from './pages/AsetTetap';
+import HutangPiutang from './pages/HutangPiutang';
+import ProgramZakatQurban from './pages/ProgramZakatQurban';
+import GrantHibah from './pages/GrantHibah';
+import SDMPenggajian from './pages/SDMPenggajian';
+import MasterDataKeuangan from './pages/MasterDataKeuangan';
+import KonfigurasiProgram from './pages/KonfigurasiProgram';
+import PeriodeAkuntansi from './pages/PeriodeAkuntansi';
+import DashboardAkuntansi from './pages/DashboardAkuntansi';
+import PengaturanLaporan from './pages/PengaturanLaporan';
+import LaporanDonasi from './pages/LaporanDonasi';
+import LaporanOperasional from './pages/LaporanOperasional';
+import LaporanGrant from './pages/LaporanGrant';
+import LaporanSDM from './pages/LaporanSDM';
+import AuditTrail from './pages/AuditTrail';
+import RekonsiliasiBank from './pages/RekonsiliasiBank';
+import MonitoringSistem from './pages/MonitoringSistem';
+import LaporanPSAK409 from './pages/LaporanPSAK409';
 import DashboardCrowdfunding from './pages/DashboardCrowdfunding';
 import KampanyeList from './pages/KampanyeList';
 import ComingSoon from './pages/ComingSoon';
@@ -44,10 +65,55 @@ function App() {
 
   const renderContent = () => {
     if (currentModule === 'accounting') {
-      if (activeMenu === 'Transaksi Keuangan') {
-        return <TransaksiKeuangan />;
+      switch (activeMenu) {
+        case 'Dashboard':
+          return <DashboardAkuntansi />;
+        case 'Transaksi Keuangan':
+          return <TransaksiKeuangan />;
+        case 'Penyaluran Dana':
+          return <PenyaluranDana />;
+        case 'Pengeluaran Ops.':
+          return <PengeluaranOps />;
+        case 'Anggaran & Realisasi':
+          return <AnggaranRealisasi />;
+        case 'Aset Tetap':
+          return <AsetTetap />;
+        case 'Hutang & Piutang':
+          return <HutangPiutang />;
+        case 'Program Qurban':
+        case 'Program Zakat':
+          return <ProgramZakatQurban />;
+        case 'Grant & Hibah':
+          return <GrantHibah />;
+        case 'SDM & Penggajian':
+          return <SDMPenggajian />;
+        case 'Master Data':
+          return <MasterDataKeuangan />;
+        case 'Konfigurasi Program':
+          return <KonfigurasiProgram />;
+        case 'Pengaturan Laporan':
+          return <PengaturanLaporan />;
+        case 'Periode Akuntansi':
+          return <PeriodeAkuntansi />;
+        case 'Laporan PSAK 409':
+          return <LaporanPSAK409 />;
+        case 'Laporan Donasi':
+          return <LaporanDonasi />;
+        case 'Laporan Operasional':
+          return <LaporanOperasional />;
+        case 'Laporan Grant':
+          return <LaporanGrant />;
+        case 'Laporan SDM':
+          return <LaporanSDM />;
+        case 'Rekonsiliasi Bank':
+          return <RekonsiliasiBank />;
+        case 'Audit Trail':
+          return <AuditTrail />;
+        case 'Monitoring Sistem':
+          return <MonitoringSistem />;
+        default:
+          return <ComingSoon title={activeMenu} />;
       }
-      return <ComingSoon title={activeMenu} />;
     } else if (currentModule === 'crowdfunding') {
       if (activeMenu === 'Dashboard') {
         return <DashboardCrowdfunding />;
