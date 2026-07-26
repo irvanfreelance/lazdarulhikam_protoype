@@ -46,9 +46,12 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
       {renderMenuItem('Laporan PSAK 45', BarChart3)}
       {renderMenuItem('Laporan Donasi', TrendingUp)}
       {renderMenuItem('Laporan Operasional', Briefcase)}
+      {renderMenuItem('Laporan Grant', Gift)}
+      {renderMenuItem('Laporan SDM', Users)}
 
       <div className="menu-category">Monitoring</div>
       {renderMenuItem('Rekonsiliasi Bank', FileBarChart)}
+      {renderMenuItem('Audit Trail', Shield)}
       {renderMenuItem('Monitoring Sistem', MonitorCheck)}
     </>
   );

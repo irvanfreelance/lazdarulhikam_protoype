@@ -18,6 +18,7 @@ import {
   Coins,
   FileCode
 } from 'lucide-react';
+import { getAccountingData } from '../utils/accountingStore';
 
 // --- CONFIG & CONSTANTS ---
 const COAS_ALL = {
@@ -77,50 +78,11 @@ const TransaksiKeuangan = () => {
   const [activeSubTab, setActiveSubTab] = useState('saldo'); // for Opname & Saldo tab
 
   // --- PERSISTED STATES ---
-  const [penerimaan, setPenerimaan] = useState(() => {
-    const saved = localStorage.getItem('laz_penerimaan');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', id_trans: '2607120935123456', tgl: '2026-07-12T09:35', donatur: 'Hamba Allah', channel: 'Xendit QRIS', coa: '401.01.001.000', nominal: 5000000, status: 'PAID', note: 'Donasi kesehatan hamba allah' },
-      { id: '2', id_trans: '2607121015987654', tgl: '2026-07-12T10:15', donatur: 'Budi Santoso', channel: 'BCA VA', coa: '401.02.001.000', nominal: 2500000, status: 'PAID', note: 'Donasi gempa cianjur' },
-      { id: '3', id_trans: '2607111420112233', tgl: '2026-07-11T14:20', donatur: 'PT ABC Sejahtera', channel: 'Mandiri Manual', coa: '401.05.001.000', nominal: 50000000, status: 'PENDING', note: 'Pembayaran zakat profesi & maal perusahaan' },
-      { id: '4', id_trans: '2607111645445566', tgl: '2026-07-11T16:45', donatur: 'Siti Aminah', channel: 'ShopeePay', coa: '401.08.001.000', nominal: 100000, status: 'PAID', note: 'Sedekah masjid' },
-      { id: '5', id_trans: '2607100810998877', tgl: '2026-07-10T08:10', donatur: 'Anonim', channel: 'Alfamart', coa: '401.01.001.000', nominal: 50000, status: 'PAID', note: 'Titipan donasi kesehatan' }
-    ];
-  });
-
-  const [pengeluaran, setPengeluaran] = useState(() => {
-    const saved = localStorage.getItem('laz_pengeluaran');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', id_trans: '2607121122334455', tgl: '2026-07-12T11:22', vendor: 'CV Sembako Mandiri', kategori: 'logistik', coa: '501.03.000.000', nominal: 15000000, status: 'PAID', note: 'Penyaluran beras dhuafa', coa_bayar: '101.02.001.000' },
-      { id: '2', id_trans: '2607111530998877', tgl: '2026-07-11T15:30', vendor: 'Apotek Sehat Sentosa', kategori: 'barang', coa: '501.01.000.000', nominal: 3200000, status: 'PAID', note: 'Penyembuhan pasien dhuafa', coa_bayar: '101.01.001.000' },
-      { id: '3', id_trans: '2607101015665544', tgl: '2026-07-10T10:15', vendor: 'PT Telkom Indonesia', kategori: 'jasa', coa: '502.03.000.000', nominal: 1250000, status: 'PENDING', note: 'Beban langganan internet kantor', coa_bayar: '101.02.002.000' }
-    ];
-  });
-
-  const [saldo, setSaldo] = useState(() => {
-    const saved = localStorage.getItem('laz_saldo');
-    return saved ? JSON.parse(saved) : [
-      { coa: '101.01.001.000', nama: 'Kas Pusat', saldo: 15450000 },
-      { coa: '101.02.001.000', nama: 'BCA — Transfer Manual', saldo: 245300000 },
-      { coa: '101.02.002.000', nama: 'Mandiri — Transfer Manual', saldo: 120000000 },
-      { coa: '101.02.004.000', nama: 'E-Wallet Xendit', saldo: 50000000 },
-      { coa: '101.02.006.000', nama: 'QRIS Xendit Settlement', saldo: 20000000 }
-    ];
-  });
-
-  const [opname, setOpname] = useState(() => {
-    const saved = localStorage.getItem('laz_opname');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', tanggal: '2026-07-12', coa: '101.01.001.000', saldo_awal: 15400000, debet: 50000, kredit: 0, adjustment: 0, saldo_akhir: 15450000, detail_kertas: '100k x 150, 50k x 9', detail_logam: '500 x 0', per: 'd', keterangan: 'Cocok harian', via: 'coa' }
-    ];
-  });
-
-  const [jurnalPenyesuaian, setJurnalPenyesuaian] = useState(() => {
-    const saved = localStorage.getItem('laz_jurnal_penyesuaian');
-    return saved ? JSON.parse(saved) : [
-      { id: '1', period: 'Oktober 2026', jenis_aje: 'depresiasi', keterangan: 'Penyusutan Laptop Inventaris Kantor', coa_debet: '502.03.000.000', coa_kredit: '102.01.000.000', nominal: 250000, nik_input: 'ADMIN001', approved_by: 'Irvan Superadmin', approved_at: '2026-10-31T17:00' }
-    ];
-  });
+  const [penerimaan, setPenerimaan] = useState(() => getAccountingData().penerimaan);
+  const [pengeluaran, setPengeluaran] = useState(() => getAccountingData().pengeluaran);
+  const [saldo, setSaldo] = useState(() => getAccountingData().saldo);
+  const [opname, setOpname] = useState(() => getAccountingData().opname);
+  const [jurnalPenyesuaian, setJurnalPenyesuaian] = useState(() => getAccountingData().jurnalPenyesuaian);
 
   // Sync to localStorage
   useEffect(() => {
@@ -258,7 +220,8 @@ const TransaksiKeuangan = () => {
           coa: '401.01.001.000',
           nominal: '',
           status: 'PAID',
-          note: ''
+          note: '',
+          splitAmil: false
         });
       } else if (type === 'pengeluaran_add') {
         setFormFields({
@@ -307,17 +270,48 @@ const TransaksiKeuangan = () => {
     e.preventDefault();
 
     if (modalType === 'penerimaan_add') {
-      const newItem = {
-        id: String(penerimaan.length + 1),
-        id_trans: generateIdTrans(),
-        ...formFields,
-        nominal: parseFloat(formFields.nominal) || 0
-      };
-      setPenerimaan(prev => [newItem, ...prev]);
+      const nominalAsli = parseFloat(formFields.nominal) || 0;
+      const refIdTrans = generateIdTrans();
+      
+      // Auto-Split Amil Zakat Logic
+      if (formFields.coa.startsWith('401.05') && formFields.splitAmil) {
+        const nominalZakat = nominalAsli * 0.875;
+        const nominalAmil = nominalAsli * 0.125;
+        
+        const itemZakat = {
+          id: String(penerimaan.length + 1),
+          id_trans: refIdTrans,
+          ...formFields,
+          nominal: nominalZakat,
+          note: `${formFields.note} (Porsi Zakat 87.5%)`
+        };
+        const itemAmil = {
+          id: String(penerimaan.length + 2),
+          id_trans: refIdTrans,
+          ...formFields,
+          coa: '401.07.001.000', // Infaq Operasional (Amil)
+          nominal: nominalAmil,
+          note: `${formFields.note} (Porsi Amil 12.5%)`
+        };
+        
+        setPenerimaan(prev => [itemZakat, itemAmil, ...prev]);
 
-      // If PAID, adjust cash balance
-      if (newItem.status === 'PAID') {
-        adjustSaldo(newItem.channel === 'Xendit QRIS' ? '101.02.006.000' : '101.02.001.000', newItem.nominal, 'add');
+        if (itemZakat.status === 'PAID') {
+          adjustSaldo(itemZakat.channel === 'Xendit QRIS' ? '101.02.006.000' : '101.02.001.000', nominalAsli, 'add');
+        }
+      } else {
+        const newItem = {
+          id: String(penerimaan.length + 1),
+          id_trans: refIdTrans,
+          ...formFields,
+          nominal: nominalAsli
+        };
+        setPenerimaan(prev => [newItem, ...prev]);
+
+        // If PAID, adjust cash balance
+        if (newItem.status === 'PAID') {
+          adjustSaldo(newItem.channel === 'Xendit QRIS' ? '101.02.006.000' : '101.02.001.000', newItem.nominal, 'add');
+        }
       }
     } else if (modalType === 'penerimaan_edit') {
       // Find diff for balance update if paid state changes
@@ -1085,6 +1079,20 @@ const TransaksiKeuangan = () => {
                         <option value="PENDING">PENDING (Draft)</option>
                       </select>
                     </div>
+                    {formFields.coa?.startsWith('401.05') && modalType === 'penerimaan_add' && (
+                      <div className="form-group full-width" style={{ background: '#f8fafc', padding: '12px', borderRadius: '6px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <input 
+                          type="checkbox" 
+                          id="splitAmil"
+                          checked={formFields.splitAmil || false}
+                          onChange={e => setFormFields(prev => ({ ...prev, splitAmil: e.target.checked }))}
+                          style={{ width: '16px', height: '16px' }}
+                        />
+                        <label htmlFor="splitAmil" style={{ margin: 0, fontWeight: 500, color: '#3b82f6', cursor: 'pointer' }}>
+                          Otomatis Pisahkan Hak Amil (12.5% ke Operasional)
+                        </label>
+                      </div>
+                    )}
                     <div className="form-group full-width">
                       <label>Catatan Tambahan</label>
                       <textarea 
