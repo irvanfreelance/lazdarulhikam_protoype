@@ -570,7 +570,7 @@ export const executeInternalTransferAction = (transferId) => {
     nominal: tf.jumlah,
     status: 'PAID',
     coa_bayar: tf.dari_rekening_id,
-    note: `Transfer keluar no: ${tf.nomor_transfer}`
+    note: `Transfer keluar no: ${tf.nomor_transfer}${tf.keterangan ? ' - ' + tf.keterangan : ''}`
   };
 
   // Record transfer in
@@ -583,7 +583,7 @@ export const executeInternalTransferAction = (transferId) => {
     coa: '101.05.001.000', // Kas Transit
     nominal: tf.jumlah,
     status: 'PAID',
-    note: `Transfer masuk no: ${tf.nomor_transfer}`
+    note: `Transfer masuk no: ${tf.nomor_transfer}${tf.keterangan ? ' - ' + tf.keterangan : ''}`
   };
 
   // Record transfer fee

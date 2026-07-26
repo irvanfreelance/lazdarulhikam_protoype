@@ -46,6 +46,7 @@ const HutangPiutang = () => {
         ke_rekening_id: formFields.ke_rekening_id,
         jumlah: parseFloat(formFields.jumlah) || 0,
         biaya_transfer: parseFloat(formFields.biaya_transfer) || 0,
+        keterangan: formFields.keterangan || '',
         tgl_kirim: new Date().toISOString().substring(0, 10),
         status: 'pending'
       };
@@ -81,7 +82,8 @@ const HutangPiutang = () => {
                 dari_rekening_id: '101.02.004.000', // Xendit
                 ke_rekening_id: '101.02.001.000', // BCA
                 jumlah: '',
-                biaya_transfer: '6500'
+                biaya_transfer: '6500',
+                keterangan: ''
               });
               setIsModalOpen(true);
             }}>
@@ -238,6 +240,7 @@ const HutangPiutang = () => {
                 <th>Ke Rekening (Debet)</th>
                 <th style={{ textAlign: 'right' }}>Jumlah Transfer</th>
                 <th style={{ textAlign: 'right' }}>Biaya Admin</th>
+                <th>Keterangan</th>
                 <th>Status</th>
                 <th>Aksi</th>
               </tr>
@@ -252,6 +255,7 @@ const HutangPiutang = () => {
                     <td>{t.ke_rekening_id}</td>
                     <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatRupiah(t.jumlah)}</td>
                     <td style={{ textAlign: 'right' }}>{formatRupiah(t.biaya_transfer)}</td>
+                    <td style={{ color: '#64748b', fontSize: '0.85rem' }}>{t.keterangan || '-'}</td>
                     <td>
                       <span className={`status-badge ${t.status === 'completed' ? 'status-success' : 'status-warning'}`}>
                         {t.status.toUpperCase()}
@@ -314,6 +318,12 @@ const HutangPiutang = () => {
                   <input type="number" required style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px' }}
                     value={formFields.biaya_transfer || ''} onChange={e => setFormFields({...formFields, biaya_transfer: e.target.value})} />
                 </div>
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '6px' }}>Keterangan</label>
+                <textarea rows={3} placeholder="cth. Top-up saldo BCA untuk pencairan program"
+                  style={{ width: '100%', padding: '10px', border: '1px solid #e2e8f0', borderRadius: '6px', fontFamily: 'inherit', resize: 'vertical' }}
+                  value={formFields.keterangan || ''} onChange={e => setFormFields({...formFields, keterangan: e.target.value})} />
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={() => setIsModalOpen(false)}>Batal</button>
