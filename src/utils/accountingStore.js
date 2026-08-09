@@ -55,6 +55,12 @@ export const CATEGORIES = ['barang', 'jasa', 'media', 'konsultan', 'peternak', '
 export const PERIODS = ['Mei 2026', 'Juni 2026', 'Juli 2026', 'Oktober 2026', 'Januari 2027'];
 export const AJE_TYPES = ['akrual', 'depresiasi', 'koreksi', 'penutup', 'balik'];
 
+// HCM constants
+export const DEPARTEMEN_OPTIONS = ['Keuangan', 'Program & Penyaluran', 'Marketing & Fundraising', 'Umum & IT', 'Manajemen'];
+export const STATUS_KEPEGAWAIAN_OPTIONS = ['Tetap', 'Kontrak', 'Magang', 'Harian Lepas'];
+export const ATTENDANCE_STATUS_OPTIONS = ['Hadir', 'Terlambat', 'Sakit', 'Izin', 'Cuti', 'Alpha'];
+export const ATTENDANCE_METHOD_OPTIONS = ['Fingerprint', 'Mobile App', 'Manual'];
+
 export const formatRupiah = (num) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -104,9 +110,9 @@ const defaultJurnalPenyesuaian = [
 
 // Beneficiaries
 const defaultBeneficiaries = [
-  { id: '1', kode_beneficiary: 'BNF-2026-000001', nama_lengkap: 'Syarifudin', nik: '3201020304050001', kategori: 'individu', status_ekonomi: 'miskin', kelurahan: 'Sindangrasa', kecamatan: 'Bogor Timur', kabupaten: 'Bogor', provinsi: 'Jawa Barat', status_verifikasi: 'verified', campaign_id: 1 },
-  { id: '2', kode_beneficiary: 'BNF-2026-000002', nama_lengkap: 'Panti Asuhan Al-Barokah', nik: '', kategori: 'lembaga', status_ekonomi: 'lainnya', kelurahan: 'Margajaya', kecamatan: 'Bogor Barat', kabupaten: 'Bogor', provinsi: 'Jawa Barat', status_verifikasi: 'verified', campaign_id: 5 },
-  { id: '3', kode_beneficiary: 'BNF-2026-000003', nama_lengkap: 'Neneng Sumarni', nik: '3201020304050002', kategori: 'individu', status_ekonomi: 'sangat_miskin', kelurahan: 'Tajur', kecamatan: 'Bogor Timur', kabupaten: 'Bogor', provinsi: 'Jawa Barat', status_verifikasi: 'unverified', campaign_id: 1 }
+  { id: '1', kode_beneficiary: 'BNF-2026-000001', nama_lengkap: 'Syarifudin', nik: '3201020304050001', kategori: 'individu', status_ekonomi: 'miskin', kelurahan: 'Sindangrasa', kecamatan: 'Bogor Timur', kabupaten: 'Bogor', provinsi: 'Jawa Barat', status_verifikasi: 'verified', campaign_id: 1, lat: -6.5971, lng: 106.8060 },
+  { id: '2', kode_beneficiary: 'BNF-2026-000002', nama_lengkap: 'Panti Asuhan Al-Barokah', nik: '', kategori: 'lembaga', status_ekonomi: 'lainnya', kelurahan: 'Margajaya', kecamatan: 'Bogor Barat', kabupaten: 'Bogor', provinsi: 'Jawa Barat', status_verifikasi: 'verified', campaign_id: 5, lat: -6.5964, lng: 106.7757 },
+  { id: '3', kode_beneficiary: 'BNF-2026-000003', nama_lengkap: 'Neneng Sumarni', nik: '3201020304050002', kategori: 'individu', status_ekonomi: 'sangat_miskin', kelurahan: 'Tajur', kecamatan: 'Bogor Timur', kabupaten: 'Bogor', provinsi: 'Jawa Barat', status_verifikasi: 'unverified', campaign_id: 1, lat: -6.6208, lng: 106.8228 }
 ];
 
 // Disbursement Requests
@@ -148,12 +154,29 @@ const defaultGrantDisbursements = [
 
 // Employees
 const defaultEmployees = [
-  { id: '1', nik: 'EMP001', nama: 'Irvan Setiawan', jabatan: 'Finance Manager', ptkp: 'K/0', gaji_pokok: 7500000, bank: 'BCA', norek: '1234567890', active: true },
-  { id: '2', nik: 'EMP002', nama: 'Ahmad Faisal', status: 'Staff Lapangan', ptkp: 'TK/0', gaji_pokok: 4500000, bank: 'Mandiri', norek: '0987654321', active: true }
+  { id: '1', nik: 'EMP001', nama: 'Irvan Setiawan', jabatan: 'Finance Manager', departemen: 'Keuangan', status_kepegawaian: 'Tetap', tanggal_masuk: '2021-03-01', email: 'irvan.setiawan@darulhikam.org', no_hp: '081234500001', ptkp: 'K/0', gaji_pokok: 7500000, bank: 'BCA', norek: '1234567890', active: true },
+  { id: '2', nik: 'EMP002', nama: 'Ahmad Faisal', jabatan: 'Staff Lapangan', status: 'Staff Lapangan', departemen: 'Program & Penyaluran', status_kepegawaian: 'Tetap', tanggal_masuk: '2022-06-15', email: 'ahmad.faisal@darulhikam.org', no_hp: '081234500002', ptkp: 'TK/0', gaji_pokok: 4500000, bank: 'Mandiri', norek: '0987654321', active: true },
+  { id: '3', nik: 'EMP003', nama: 'Siti Nurhaliza', jabatan: 'Staff Fundraising', departemen: 'Marketing & Fundraising', status_kepegawaian: 'Kontrak', tanggal_masuk: '2023-09-01', email: 'siti.nurhaliza@darulhikam.org', no_hp: '081234500003', ptkp: 'TK/0', gaji_pokok: 4200000, bank: 'BCA', norek: '2345678901', active: true },
+  { id: '4', nik: 'EMP004', nama: 'Muhammad Rizki', jabatan: 'IT Support', departemen: 'Umum & IT', status_kepegawaian: 'Tetap', tanggal_masuk: '2020-11-10', email: 'muhammad.rizki@darulhikam.org', no_hp: '081234500004', ptkp: 'K/1', gaji_pokok: 5200000, bank: 'BNI', norek: '3456789012', active: true },
+  { id: '5', nik: 'EMP005', nama: 'Dewi Kartika', jabatan: 'Staff Administrasi', departemen: 'Umum & IT', status_kepegawaian: 'Magang', tanggal_masuk: '2026-01-06', email: 'dewi.kartika@darulhikam.org', no_hp: '081234500005', ptkp: 'TK/0', gaji_pokok: 2500000, bank: 'Mandiri', norek: '4567890123', active: true }
 ];
 
 const defaultPayrollPeriods = [
   { id: '1', periode: 'Juni 2026', total_gaji: 12000000, status: 'disbursed', tgl_bayar: '2026-06-25T08:00', approved_by: 'MGR001' }
+];
+
+// HCM — Attendance (Kehadiran Karyawan)
+const defaultAttendance = [
+  { id: '1', tanggal: '2026-08-09', nik: 'EMP001', nama: 'Irvan Setiawan', departemen: 'Keuangan', jam_masuk: '08:02', jam_pulang: '17:05', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
+  { id: '2', tanggal: '2026-08-09', nik: 'EMP002', nama: 'Ahmad Faisal', departemen: 'Program & Penyaluran', jam_masuk: '08:41', jam_pulang: '17:10', status: 'Terlambat', metode: 'Mobile App', keterangan: 'Terjebak macet di lokasi survei' },
+  { id: '3', tanggal: '2026-08-09', nik: 'EMP003', nama: 'Siti Nurhaliza', departemen: 'Marketing & Fundraising', jam_masuk: '', jam_pulang: '', status: 'Sakit', metode: 'Manual', keterangan: 'Surat keterangan dokter menyusul' },
+  { id: '4', tanggal: '2026-08-09', nik: 'EMP004', nama: 'Muhammad Rizki', departemen: 'Umum & IT', jam_masuk: '07:55', jam_pulang: '17:00', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
+  { id: '5', tanggal: '2026-08-09', nik: 'EMP005', nama: 'Dewi Kartika', departemen: 'Umum & IT', jam_masuk: '', jam_pulang: '', status: 'Izin', metode: 'Manual', keterangan: 'Mengurus dokumen kependudukan' },
+  { id: '6', tanggal: '2026-08-08', nik: 'EMP001', nama: 'Irvan Setiawan', departemen: 'Keuangan', jam_masuk: '07:58', jam_pulang: '17:02', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
+  { id: '7', tanggal: '2026-08-08', nik: 'EMP002', nama: 'Ahmad Faisal', departemen: 'Program & Penyaluran', jam_masuk: '08:00', jam_pulang: '17:00', status: 'Hadir', metode: 'Mobile App', keterangan: '' },
+  { id: '8', tanggal: '2026-08-08', nik: 'EMP003', nama: 'Siti Nurhaliza', departemen: 'Marketing & Fundraising', jam_masuk: '08:10', jam_pulang: '17:15', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
+  { id: '9', tanggal: '2026-08-08', nik: 'EMP004', nama: 'Muhammad Rizki', departemen: 'Umum & IT', jam_masuk: '', jam_pulang: '', status: 'Cuti', metode: 'Manual', keterangan: 'Cuti tahunan' },
+  { id: '10', tanggal: '2026-08-08', nik: 'EMP005', nama: 'Dewi Kartika', departemen: 'Umum & IT', jam_masuk: '08:05', jam_pulang: '17:00', status: 'Hadir', metode: 'Fingerprint', keterangan: '' }
 ];
 
 // Assets
@@ -221,6 +244,9 @@ const defaultAnggaranItems = [
 // Bukti Realisasi (proof-of-disbursement records)
 const defaultBuktiRealisasi = [];
 
+// Laporan Pertanggungjawaban Penyaluran (LPJ)
+const defaultLpjPenyaluran = [];
+
 // Master Kurs Valas (daily FX rates)
 const defaultKursValas = [
   { id: '1', mata_uang: 'USD', kurs: 16250, tgl_update: '2026-07-26' },
@@ -283,6 +309,7 @@ export const getAccountingData = () => {
     grantDisbursements: getStorageItem('laz_grant_disbursements', defaultGrantDisbursements),
     employees: getStorageItem('laz_employees', defaultEmployees),
     payrollPeriods: getStorageItem('laz_payroll_periods', defaultPayrollPeriods),
+    attendance: getStorageItem('laz_attendance', defaultAttendance),
     assets: getStorageItem('laz_assets', defaultAssets),
     internalTransfers: getStorageItem('laz_internal_transfers', defaultInternalTransfers),
     bankStatements: getStorageItem('laz_bank_statements', defaultBankStatements),
@@ -294,6 +321,7 @@ export const getAccountingData = () => {
     grantReports: getStorageItem('laz_grant_reports', defaultGrantReports),
     anggaranItems: getStorageItem('laz_anggaran_items', defaultAnggaranItems),
     buktiRealisasi: getStorageItem('laz_bukti_realisasi', defaultBuktiRealisasi),
+    laporanPertanggungjawaban: getStorageItem('laz_lpj_penyaluran', defaultLpjPenyaluran),
     kursValas: getStorageItem('laz_kurs_valas', defaultKursValas),
     reportRows: getStorageItem('laz_report_rows', defaultReportRows),
     calkNotes: getStorageItem('laz_calk_notes', defaultCalkNotes)

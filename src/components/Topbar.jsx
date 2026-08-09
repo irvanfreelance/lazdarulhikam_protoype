@@ -23,10 +23,10 @@ const Topbar = ({ toggleSidebar }) => {
 
         <div className="user-profile">
           <div className="user-info" style={{ textAlign: 'right' }}>
-            <span className="user-name">Irvan</span>
+            <span className="user-name">Asep Saepul</span>
             <span className="user-role">Superadmin</span>
           </div>
-          <div className="user-avatar">I</div>
+          <div className="user-avatar">A</div>
           <ChevronDown size={16} color="#64748b" />
         </div>
       </div>
