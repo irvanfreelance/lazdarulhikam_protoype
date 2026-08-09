@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
 import TransaksiKeuangan from './pages/TransaksiKeuangan';
-import PenyaluranDana from './pages/PenyaluranDana';
 import PengeluaranOps from './pages/PengeluaranOps';
 import AnggaranRealisasi from './pages/AnggaranRealisasi';
 import AsetTetap from './pages/AsetTetap';
@@ -25,7 +24,23 @@ import MonitoringSistem from './pages/MonitoringSistem';
 import LaporanPSAK409 from './pages/LaporanPSAK409';
 import DashboardCrowdfunding from './pages/DashboardCrowdfunding';
 import KampanyeList from './pages/KampanyeList';
+import HCMDashboard from './pages/HCMDashboard';
+import HCMKaryawan from './pages/HCMKaryawan';
+import HCMKehadiran from './pages/HCMKehadiran';
 import ComingSoon from './pages/ComingSoon';
+import ProfileLembaga from './pages/ProfileLembaga';
+import Program from './pages/Program';
+import KodeBank from './pages/KodeBank';
+import RekeningBank from './pages/RekeningBank';
+import DocumentList from './pages/DocumentList';
+import SuratMenyurat from './pages/SuratMenyurat';
+import PenyaluranDashboard from './pages/PenyaluranDashboard';
+import PetaPenyaluran from './pages/PetaPenyaluran';
+import PenyaluranPengajuan from './pages/PenyaluranPengajuan';
+import PenerimaManfaatPenyaluran from './pages/PenerimaManfaatPenyaluran';
+import DistribusiMassal from './pages/DistribusiMassal';
+import PertanggungjawabanPenyaluran from './pages/PertanggungjawabanPenyaluran';
+import LaporanPenyaluran from './pages/LaporanPenyaluran';
 import './index.css';
 
 function App() {
@@ -38,6 +53,10 @@ function App() {
     setCurrentModule(module);
     if (module === 'accounting') {
       setActiveMenu('Transaksi Keuangan');
+    } else if (module === 'fins') {
+      setActiveMenu('Dashboard Cash Bank');
+    } else if (module === 'document') {
+      setActiveMenu('Daftar Dokumen');
     } else {
       setActiveMenu('Dashboard');
     }
@@ -70,8 +89,6 @@ function App() {
           return <DashboardAkuntansi />;
         case 'Transaksi Keuangan':
           return <TransaksiKeuangan />;
-        case 'Penyaluran Dana':
-          return <PenyaluranDana />;
         case 'Pengeluaran Ops.':
           return <PengeluaranOps />;
         case 'Anggaran & Realisasi':
@@ -114,6 +131,25 @@ function App() {
         default:
           return <ComingSoon title={activeMenu} />;
       }
+    } else if (currentModule === 'penyaluran') {
+      switch (activeMenu) {
+        case 'Dashboard':
+          return <PenyaluranDashboard />;
+        case 'Peta Penyaluran':
+          return <PetaPenyaluran />;
+        case 'Pengajuan Penyaluran':
+          return <PenyaluranPengajuan />;
+        case 'Penerima Manfaat':
+          return <PenerimaManfaatPenyaluran />;
+        case 'Distribusi Massal':
+          return <DistribusiMassal />;
+        case 'Pertanggungjawaban':
+          return <PertanggungjawabanPenyaluran />;
+        case 'Laporan Penyaluran':
+          return <LaporanPenyaluran />;
+        default:
+          return <ComingSoon title={activeMenu} />;
+      }
     } else if (currentModule === 'crowdfunding') {
       if (activeMenu === 'Dashboard') {
         return <DashboardCrowdfunding />;
@@ -121,6 +157,39 @@ function App() {
         return <KampanyeList />;
       }
       return <ComingSoon title={activeMenu} />;
+    } else if (currentModule === 'fins') {
+      switch (activeMenu) {
+        case 'Profile Lembaga':
+          return <ProfileLembaga />;
+        case 'Program':
+          return <Program />;
+        case 'Kode Bank':
+          return <KodeBank />;
+        case 'Rekening Bank':
+          return <RekeningBank />;
+        default:
+          return <ComingSoon title={activeMenu} />;
+      }
+    } else if (currentModule === 'hcm') {
+      switch (activeMenu) {
+        case 'Dashboard':
+          return <HCMDashboard />;
+        case 'Data Karyawan':
+          return <HCMKaryawan />;
+        case 'Kehadiran Karyawan':
+          return <HCMKehadiran />;
+        default:
+          return <ComingSoon title={activeMenu} />;
+      }
+    } else if (currentModule === 'document') {
+      switch (activeMenu) {
+        case 'Daftar Dokumen':
+          return <DocumentList />;
+        case 'Surat Menyurat':
+          return <SuratMenyurat />;
+        default:
+          return <ComingSoon title={activeMenu} />;
+      }
     }
     return <ComingSoon title={activeMenu} />;
   };

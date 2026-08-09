@@ -1,10 +1,12 @@
 import React from 'react';
-import { 
+import {
   LayoutDashboard, Wallet, Send, Receipt, PieChart, Building2, CreditCard,
   Heart, Gift, FileText, Users, Settings, Database, FileBarChart, Calendar,
   BarChart3, TrendingUp, Activity, Briefcase, MonitorCheck, Megaphone,
   MessageSquare, Tag, Repeat, Handshake, LogOut, Bell, Shield, Hash, Search,
-  Calculator, Globe, ChevronRight, ChevronLeft, GraduationCap
+  Calculator, Globe, ChevronRight, ChevronLeft, GraduationCap, Landmark,
+  ClipboardCheck, BookOpen, Lock, CheckCircle, BookText, Scale, BadgeCheck,
+  FileSpreadsheet, Book, IdCard, CalendarCheck, Folder, Mail, Truck, MapPin
 } from 'lucide-react';
 
 const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSidebarCollapsed, toggleSidebar }) => {
@@ -26,7 +28,6 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
     <>
       <div className="menu-category">Operasional</div>
       {renderMenuItem('Transaksi Keuangan', Wallet)}
-      {renderMenuItem('Penyaluran Dana', Send)}
       {renderMenuItem('Pengeluaran Ops.', Receipt)}
       {renderMenuItem('Anggaran & Realisasi', PieChart)}
       {renderMenuItem('Aset Tetap', Building2)}
@@ -53,6 +54,87 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
       {renderMenuItem('Rekonsiliasi Bank', FileBarChart)}
       {renderMenuItem('Audit Trail', Shield)}
       {renderMenuItem('Monitoring Sistem', MonitorCheck)}
+    </>
+  );
+
+  const renderPenyaluranMenus = () => (
+    <>
+      <div className="menu-category">Operasional</div>
+      {renderMenuItem('Peta Penyaluran', MapPin)}
+      {renderMenuItem('Pengajuan Penyaluran', Send)}
+      {renderMenuItem('Penerima Manfaat', Users)}
+      {renderMenuItem('Distribusi Massal', Repeat)}
+
+      <div className="menu-category">Pertanggungjawaban</div>
+      {renderMenuItem('Pertanggungjawaban', ClipboardCheck)}
+
+      <div className="menu-category">Laporan</div>
+      {renderMenuItem('Laporan Penyaluran', BarChart3)}
+    </>
+  );
+
+  const renderFinsMenus = () => (
+    <>
+      <div className="menu-category">Home</div>
+      {renderMenuItem('Dashboard Cash Bank', LayoutDashboard)}
+      {renderMenuItem('Pengajuan CA', FileText)}
+      {renderMenuItem('Pencairan', Send)}
+      {renderMenuItem('Pertanggungjawaban CA', ClipboardCheck)}
+      {renderMenuItem('Pengeluaran', Receipt)}
+      {renderMenuItem('Penerimaan', Wallet)}
+      {renderMenuItem('Buku Harian', BookOpen)}
+      {renderMenuItem('Penutupan', Lock)}
+      {renderMenuItem('Resume Dana Pengelola', FileBarChart)}
+      {renderMenuItem('Bank Statement', CreditCard)}
+
+      <div className="menu-category">Anggaran</div>
+      {renderMenuItem('Resume Anggaran', PieChart)}
+      {renderMenuItem('Approve Anggaran', CheckCircle)}
+
+      <div className="menu-category">Akuntansi</div>
+      {renderMenuItem('Saldo Awal', Landmark)}
+      {renderMenuItem('Rekap Jurnal', BookText)}
+      {renderMenuItem('Buku Besar', Book)}
+      {renderMenuItem('Trial Balance', Scale)}
+
+      <div className="menu-category">Laporan</div>
+      {renderMenuItem('Laporan Keuangan', BarChart3)}
+      {renderMenuItem('Laporan Bulanan', Calendar)}
+
+      <div className="menu-category">Aset</div>
+      {renderMenuItem('Entry Aset', Building2)}
+      {renderMenuItem('List Aset', Database)}
+
+      <div className="menu-category">Setting Configuration</div>
+      {renderMenuItem('Profile Lembaga', Briefcase)}
+      {renderMenuItem('Program', Settings)}
+
+      <div className="menu-category">FINS</div>
+      {renderMenuItem('Kode Bank', Hash)}
+      {renderMenuItem('Rekening Bank', CreditCard)}
+      {renderMenuItem('Chart of Accounts', FileSpreadsheet)}
+      {renderMenuItem('COA Kantor', Building2)}
+      {renderMenuItem('Saldo Dana', Wallet)}
+      {renderMenuItem('Level Approve', BadgeCheck)}
+      {renderMenuItem('Rumus Report', Calculator)}
+    </>
+  );
+
+  const renderHcmMenus = () => (
+    <>
+      <div className="menu-category">Kepegawaian</div>
+      {renderMenuItem('Data Karyawan', Users)}
+
+      <div className="menu-category">Presensi</div>
+      {renderMenuItem('Kehadiran Karyawan', CalendarCheck)}
+    </>
+  );
+
+  const renderDocumentMenus = () => (
+    <>
+      <div className="menu-category">Kearsipan</div>
+      {renderMenuItem('Daftar Dokumen', FileText)}
+      {renderMenuItem('Surat Menyurat', Mail)}
     </>
   );
 
@@ -89,7 +171,16 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
           <span className="rail-item-caption">Crowdfund</span>
         </button>
 
-        <button 
+        <button
+          className={`rail-item ${currentModule === 'penyaluran' ? 'active' : ''}`}
+          onClick={() => onModuleChange('penyaluran')}
+          title="Modul Penyaluran"
+        >
+          <Truck size={24} />
+          <span className="rail-item-caption">Penyaluran</span>
+        </button>
+
+        <button
           className={`rail-item ${currentModule === 'accounting' ? 'active' : ''}`}
           onClick={() => onModuleChange('accounting')}
           title="Modul Akuntansi"
@@ -97,12 +188,39 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
           <Calculator size={24} />
           <span className="rail-item-caption">Akuntansi</span>
         </button>
+
+        <button
+          className={`rail-item ${currentModule === 'fins' ? 'active' : ''}`}
+          onClick={() => onModuleChange('fins')}
+          title="Modul FINS"
+        >
+          <Landmark size={24} />
+          <span className="rail-item-caption">FINS</span>
+        </button>
+
+        <button
+          className={`rail-item ${currentModule === 'hcm' ? 'active' : ''}`}
+          onClick={() => onModuleChange('hcm')}
+          title="Modul HCM"
+        >
+          <IdCard size={24} />
+          <span className="rail-item-caption">HCM</span>
+        </button>
+
+        <button
+          className={`rail-item ${currentModule === 'document' ? 'active' : ''}`}
+          onClick={() => onModuleChange('document')}
+          title="Modul Document"
+        >
+          <Folder size={24} />
+          <span className="rail-item-caption">Document</span>
+        </button>
       </div>
 
       <div className="sidebar-sub">
         <div className="sidebar-sub-header">
           <div className="sidebar-sub-title">
-            {currentModule === 'accounting' ? 'Akuntansi' : 'Crowdfunding'}
+            {currentModule === 'accounting' ? 'Akuntansi' : currentModule === 'fins' ? 'FINS' : currentModule === 'hcm' ? 'HCM' : currentModule === 'document' ? 'Document' : currentModule === 'penyaluran' ? 'Penyaluran' : 'Crowdfunding'}
           </div>
           <div className="sidebar-sub-subtitle">
             MANAJEMEN
@@ -110,9 +228,19 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
         </div>
 
         <nav style={{ paddingBottom: '32px' }}>
-          {renderMenuItem('Dashboard', LayoutDashboard)}
+          {(currentModule === 'fins' || currentModule === 'document') ? null : renderMenuItem('Dashboard', LayoutDashboard)}
 
-          {currentModule === 'accounting' ? renderAccountingMenus() : renderCrowdfundingMenus()}
+          {currentModule === 'accounting'
+            ? renderAccountingMenus()
+            : currentModule === 'fins'
+              ? renderFinsMenus()
+              : currentModule === 'hcm'
+                ? renderHcmMenus()
+                : currentModule === 'document'
+                  ? renderDocumentMenus()
+                  : currentModule === 'penyaluran'
+                    ? renderPenyaluranMenus()
+                    : renderCrowdfundingMenus()}
         </nav>
       </div>
     </aside>
