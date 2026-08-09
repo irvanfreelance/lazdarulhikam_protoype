@@ -32,6 +32,11 @@ import ProfileLembaga from './pages/ProfileLembaga';
 import Program from './pages/Program';
 import KodeBank from './pages/KodeBank';
 import RekeningBank from './pages/RekeningBank';
+import ChartOfAccounts from './pages/ChartOfAccounts';
+import CoaKantor from './pages/CoaKantor';
+import SaldoDana from './pages/SaldoDana';
+import LevelApprove from './pages/LevelApprove';
+import RumusReport from './pages/RumusReport';
 import DocumentList from './pages/DocumentList';
 import SuratMenyurat from './pages/SuratMenyurat';
 import PenyaluranDashboard from './pages/PenyaluranDashboard';
@@ -167,6 +172,16 @@ function App() {
           return <KodeBank />;
         case 'Rekening Bank':
           return <RekeningBank />;
+        case 'Chart of Accounts':
+          return <ChartOfAccounts />;
+        case 'COA Kantor':
+          return <CoaKantor />;
+        case 'Saldo Dana':
+          return <SaldoDana />;
+        case 'Level Approve':
+          return <LevelApprove />;
+        case 'Rumus Report':
+          return <RumusReport />;
         default:
           return <ComingSoon title={activeMenu} />;
       }
