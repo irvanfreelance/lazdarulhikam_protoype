@@ -60,6 +60,7 @@ export const DEPARTEMEN_OPTIONS = ['Keuangan', 'Program & Penyaluran', 'Marketin
 export const STATUS_KEPEGAWAIAN_OPTIONS = ['Tetap', 'Kontrak', 'Magang', 'Harian Lepas'];
 export const ATTENDANCE_STATUS_OPTIONS = ['Hadir', 'Terlambat', 'Sakit', 'Izin', 'Cuti', 'Alpha'];
 export const ATTENDANCE_METHOD_OPTIONS = ['Fingerprint', 'Mobile App', 'Manual'];
+export const ACTIVITY_CATEGORIES = ['Pekerjaan', 'Pribadi', 'Kesehatan'];
 
 export const formatRupiah = (num) => {
   return new Intl.NumberFormat('id-ID', {
@@ -105,7 +106,7 @@ const defaultOpname = [
 ];
 
 const defaultJurnalPenyesuaian = [
-  { id: '1', period: 'Oktober 2026', jenis_aje: 'depresiasi', keterangan: 'Penyusutan Laptop Inventaris Kantor', coa_debet: '502.05.000.000', coa_kredit: '102.01.001.000', nominal: 250000, nik_input: 'ADMIN001', approved_by: 'Irvan Superadmin', approved_at: '2026-10-31T17:00' }
+  { id: '1', period: 'Oktober 2026', jenis_aje: 'depresiasi', keterangan: 'Penyusutan Laptop Inventaris Kantor', coa_debet: '502.05.000.000', coa_kredit: '102.01.001.000', nominal: 250000, nik_input: 'ADMIN001', approved_by: 'Asep Superadmin', approved_at: '2026-10-31T17:00' }
 ];
 
 // Beneficiaries
@@ -154,7 +155,7 @@ const defaultGrantDisbursements = [
 
 // Employees
 const defaultEmployees = [
-  { id: '1', nik: 'EMP001', nama: 'Irvan Setiawan', jabatan: 'Finance Manager', departemen: 'Keuangan', status_kepegawaian: 'Tetap', tanggal_masuk: '2021-03-01', email: 'irvan.setiawan@darulhikam.org', no_hp: '081234500001', ptkp: 'K/0', gaji_pokok: 7500000, bank: 'BCA', norek: '1234567890', active: true },
+  { id: '1', nik: 'EMP001', nama: 'Asep Setiawan', jabatan: 'Finance Manager', departemen: 'Keuangan', status_kepegawaian: 'Tetap', tanggal_masuk: '2021-03-01', email: 'asep.setiawan@darulhikam.org', no_hp: '081234500001', ptkp: 'K/0', gaji_pokok: 7500000, bank: 'BCA', norek: '1234567890', active: true },
   { id: '2', nik: 'EMP002', nama: 'Ahmad Faisal', jabatan: 'Staff Lapangan', status: 'Staff Lapangan', departemen: 'Program & Penyaluran', status_kepegawaian: 'Tetap', tanggal_masuk: '2022-06-15', email: 'ahmad.faisal@darulhikam.org', no_hp: '081234500002', ptkp: 'TK/0', gaji_pokok: 4500000, bank: 'Mandiri', norek: '0987654321', active: true },
   { id: '3', nik: 'EMP003', nama: 'Siti Nurhaliza', jabatan: 'Staff Fundraising', departemen: 'Marketing & Fundraising', status_kepegawaian: 'Kontrak', tanggal_masuk: '2023-09-01', email: 'siti.nurhaliza@darulhikam.org', no_hp: '081234500003', ptkp: 'TK/0', gaji_pokok: 4200000, bank: 'BCA', norek: '2345678901', active: true },
   { id: '4', nik: 'EMP004', nama: 'Muhammad Rizki', jabatan: 'IT Support', departemen: 'Umum & IT', status_kepegawaian: 'Tetap', tanggal_masuk: '2020-11-10', email: 'muhammad.rizki@darulhikam.org', no_hp: '081234500004', ptkp: 'K/1', gaji_pokok: 5200000, bank: 'BNI', norek: '3456789012', active: true },
@@ -167,16 +168,27 @@ const defaultPayrollPeriods = [
 
 // HCM — Attendance (Kehadiran Karyawan)
 const defaultAttendance = [
-  { id: '1', tanggal: '2026-08-09', nik: 'EMP001', nama: 'Irvan Setiawan', departemen: 'Keuangan', jam_masuk: '08:02', jam_pulang: '17:05', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
+  { id: '1', tanggal: '2026-08-09', nik: 'EMP001', nama: 'Asep Setiawan', departemen: 'Keuangan', jam_masuk: '08:02', jam_pulang: '17:05', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
   { id: '2', tanggal: '2026-08-09', nik: 'EMP002', nama: 'Ahmad Faisal', departemen: 'Program & Penyaluran', jam_masuk: '08:41', jam_pulang: '17:10', status: 'Terlambat', metode: 'Mobile App', keterangan: 'Terjebak macet di lokasi survei' },
   { id: '3', tanggal: '2026-08-09', nik: 'EMP003', nama: 'Siti Nurhaliza', departemen: 'Marketing & Fundraising', jam_masuk: '', jam_pulang: '', status: 'Sakit', metode: 'Manual', keterangan: 'Surat keterangan dokter menyusul' },
   { id: '4', tanggal: '2026-08-09', nik: 'EMP004', nama: 'Muhammad Rizki', departemen: 'Umum & IT', jam_masuk: '07:55', jam_pulang: '17:00', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
   { id: '5', tanggal: '2026-08-09', nik: 'EMP005', nama: 'Dewi Kartika', departemen: 'Umum & IT', jam_masuk: '', jam_pulang: '', status: 'Izin', metode: 'Manual', keterangan: 'Mengurus dokumen kependudukan' },
-  { id: '6', tanggal: '2026-08-08', nik: 'EMP001', nama: 'Irvan Setiawan', departemen: 'Keuangan', jam_masuk: '07:58', jam_pulang: '17:02', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
+  { id: '6', tanggal: '2026-08-08', nik: 'EMP001', nama: 'Asep Setiawan', departemen: 'Keuangan', jam_masuk: '07:58', jam_pulang: '17:02', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
   { id: '7', tanggal: '2026-08-08', nik: 'EMP002', nama: 'Ahmad Faisal', departemen: 'Program & Penyaluran', jam_masuk: '08:00', jam_pulang: '17:00', status: 'Hadir', metode: 'Mobile App', keterangan: '' },
   { id: '8', tanggal: '2026-08-08', nik: 'EMP003', nama: 'Siti Nurhaliza', departemen: 'Marketing & Fundraising', jam_masuk: '08:10', jam_pulang: '17:15', status: 'Hadir', metode: 'Fingerprint', keterangan: '' },
   { id: '9', tanggal: '2026-08-08', nik: 'EMP004', nama: 'Muhammad Rizki', departemen: 'Umum & IT', jam_masuk: '', jam_pulang: '', status: 'Cuti', metode: 'Manual', keterangan: 'Cuti tahunan' },
   { id: '10', tanggal: '2026-08-08', nik: 'EMP005', nama: 'Dewi Kartika', departemen: 'Umum & IT', jam_masuk: '08:05', jam_pulang: '17:00', status: 'Hadir', metode: 'Fingerprint', keterangan: '' }
+];
+
+// HCM — Aktivitas Harian & Progress (per-employee daily task tracker)
+const defaultDailyActivities = [
+  { id: '1', nik: 'EMP001', tanggal: '2026-08-09', kategori: 'Pekerjaan', judul: 'Rekonsiliasi Bank Harian', deskripsi: 'Cocokkan mutasi rekening BCA & Mandiri dengan jurnal kas', jam_mulai: '08:00', jam_selesai: '09:00', selesai: true },
+  { id: '2', nik: 'EMP001', tanggal: '2026-08-09', kategori: 'Pekerjaan', judul: 'Review Pengajuan Kasbon', deskripsi: 'Periksa & setujui 3 pengajuan kasbon staf lapangan', jam_mulai: '09:00', jam_selesai: '10:00', selesai: true },
+  { id: '3', nik: 'EMP001', tanggal: '2026-08-09', kategori: 'Pekerjaan', judul: 'Susun Laporan Arus Kas Mingguan', deskripsi: 'Kompilasi laporan arus kas untuk rapat manajemen', jam_mulai: '10:30', jam_selesai: '12:00', selesai: false, progress_current: 6, progress_total: 10, progress_unit: 'bagian' },
+  { id: '4', nik: 'EMP001', tanggal: '2026-08-09', kategori: 'Kesehatan', judul: 'Olahraga Pagi', deskripsi: 'Jalan kaki keliling komplek sebelum berangkat kerja', jam_mulai: '05:30', jam_selesai: '06:00', selesai: true },
+  { id: '5', nik: 'EMP001', tanggal: '2026-08-09', kategori: 'Pribadi', judul: 'Membaca Buku Manajemen Keuangan Syariah', deskripsi: 'Target baca 30 halaman per hari', jam_mulai: '20:00', jam_selesai: '21:00', selesai: false, progress_current: 15, progress_total: 30, progress_unit: 'halaman' },
+  { id: '6', nik: 'EMP002', tanggal: '2026-08-09', kategori: 'Pekerjaan', judul: 'Survei Lokasi Penerima Manfaat', deskripsi: 'Kunjungan lapangan verifikasi calon penerima bantuan kesehatan', jam_mulai: '08:30', jam_selesai: '11:30', selesai: true },
+  { id: '7', nik: 'EMP002', tanggal: '2026-08-09', kategori: 'Pekerjaan', judul: 'Input Data Penyaluran ke Sistem', deskripsi: 'Entry hasil survei ke modul Penyaluran Dana', jam_mulai: '13:00', jam_selesai: '14:30', selesai: false }
 ];
 
 // Assets
@@ -310,6 +322,7 @@ export const getAccountingData = () => {
     employees: getStorageItem('laz_employees', defaultEmployees),
     payrollPeriods: getStorageItem('laz_payroll_periods', defaultPayrollPeriods),
     attendance: getStorageItem('laz_attendance', defaultAttendance),
+    dailyActivities: getStorageItem('laz_daily_activities', defaultDailyActivities),
     assets: getStorageItem('laz_assets', defaultAssets),
     internalTransfers: getStorageItem('laz_internal_transfers', defaultInternalTransfers),
     bankStatements: getStorageItem('laz_bank_statements', defaultBankStatements),

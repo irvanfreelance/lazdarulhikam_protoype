@@ -27,11 +27,22 @@ import KampanyeList from './pages/KampanyeList';
 import HCMDashboard from './pages/HCMDashboard';
 import HCMKaryawan from './pages/HCMKaryawan';
 import HCMKehadiran from './pages/HCMKehadiran';
+import HCMAktivitasHarian from './pages/HCMAktivitasHarian';
 import ComingSoon from './pages/ComingSoon';
 import ProfileLembaga from './pages/ProfileLembaga';
 import Program from './pages/Program';
 import KodeBank from './pages/KodeBank';
 import RekeningBank from './pages/RekeningBank';
+import DashboardCashBank from './pages/DashboardCashBank';
+import ChartOfAccounts from './pages/ChartOfAccounts';
+import CoaKantor from './pages/CoaKantor';
+import SaldoDana from './pages/SaldoDana';
+import LevelApprove from './pages/LevelApprove';
+import RumusReport from './pages/RumusReport';
+import EntryAset from './pages/EntryAset';
+import ListAset from './pages/ListAset';
+import BukuBesar from './pages/BukuBesar';
+import TrialBalance from './pages/TrialBalance';
 import DocumentList from './pages/DocumentList';
 import SuratMenyurat from './pages/SuratMenyurat';
 import PenyaluranDashboard from './pages/PenyaluranDashboard';
@@ -159,6 +170,8 @@ function App() {
       return <ComingSoon title={activeMenu} />;
     } else if (currentModule === 'fins') {
       switch (activeMenu) {
+        case 'Dashboard Cash Bank':
+          return <DashboardCashBank />;
         case 'Profile Lembaga':
           return <ProfileLembaga />;
         case 'Program':
@@ -167,6 +180,24 @@ function App() {
           return <KodeBank />;
         case 'Rekening Bank':
           return <RekeningBank />;
+        case 'Chart of Accounts':
+          return <ChartOfAccounts />;
+        case 'COA Kantor':
+          return <CoaKantor />;
+        case 'Saldo Dana':
+          return <SaldoDana />;
+        case 'Level Approve':
+          return <LevelApprove />;
+        case 'Rumus Report':
+          return <RumusReport />;
+        case 'Entry Aset':
+          return <EntryAset />;
+        case 'List Aset':
+          return <ListAset />;
+        case 'Buku Besar':
+          return <BukuBesar />;
+        case 'Trial Balance':
+          return <TrialBalance />;
         default:
           return <ComingSoon title={activeMenu} />;
       }
@@ -178,6 +209,8 @@ function App() {
           return <HCMKaryawan />;
         case 'Kehadiran Karyawan':
           return <HCMKehadiran />;
+        case 'Aktivitas Harian':
+          return <HCMAktivitasHarian />;
         default:
           return <ComingSoon title={activeMenu} />;
       }

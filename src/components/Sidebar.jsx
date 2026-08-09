@@ -1,20 +1,178 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Wallet, Send, Receipt, PieChart, Building2, CreditCard,
   Heart, Gift, FileText, Users, Settings, Database, FileBarChart, Calendar,
   BarChart3, TrendingUp, Activity, Briefcase, MonitorCheck, Megaphone,
   MessageSquare, Tag, Repeat, Handshake, LogOut, Bell, Shield, Hash, Search,
-  Calculator, Globe, ChevronRight, ChevronLeft, GraduationCap, Landmark,
+  Calculator, Globe, ChevronRight, ChevronDown, ChevronLeft, GraduationCap, Landmark,
   ClipboardCheck, BookOpen, Lock, CheckCircle, BookText, Scale, BadgeCheck,
-  FileSpreadsheet, Book, IdCard, CalendarCheck, Folder, Mail, Truck, MapPin
+  FileSpreadsheet, Book, IdCard, CalendarCheck, Folder, Mail, Truck, MapPin,
+  ListChecks
 } from 'lucide-react';
 
+// Grouped menu definitions per module. Each group renders as a collapsible
+// accordion section so long menus don't push the sidebar into an endless
+// vertical scroll. `null` (crowdfunding) means "flat list, no accordion".
+const MODULE_GROUPS = {
+  accounting: [
+    { category: 'Operasional', items: [
+      ['Transaksi Keuangan', Wallet],
+      ['Pengeluaran Ops.', Receipt],
+      ['Anggaran & Realisasi', PieChart],
+      ['Aset Tetap', Building2],
+      ['Hutang & Piutang', CreditCard],
+      ['Program Qurban', Activity],
+      ['Program Zakat', Heart],
+      ['Grant & Hibah', Gift],
+      ['SDM & Penggajian', Users]
+    ]},
+    { category: 'Konfigurasi', items: [
+      ['Master Data', Database],
+      ['Konfigurasi Program', Settings],
+      ['Pengaturan Laporan', FileText],
+      ['Periode Akuntansi', Calendar]
+    ]},
+    { category: 'Laporan', items: [
+      ['Laporan PSAK 409', BarChart3],
+      ['Laporan Donasi', TrendingUp],
+      ['Laporan Operasional', Briefcase],
+      ['Laporan Grant', Gift],
+      ['Laporan SDM', Users]
+    ]},
+    { category: 'Monitoring', items: [
+      ['Rekonsiliasi Bank', FileBarChart],
+      ['Audit Trail', Shield],
+      ['Monitoring Sistem', MonitorCheck]
+    ]}
+  ],
+
+  penyaluran: [
+    { category: 'Operasional', items: [
+      ['Peta Penyaluran', MapPin],
+      ['Pengajuan Penyaluran', Send],
+      ['Penerima Manfaat', Users],
+      ['Distribusi Massal', Repeat]
+    ]},
+    { category: 'Pertanggungjawaban', items: [
+      ['Pertanggungjawaban', ClipboardCheck]
+    ]},
+    { category: 'Laporan', items: [
+      ['Laporan Penyaluran', BarChart3]
+    ]}
+  ],
+
+  fins: [
+    { category: 'Home', items: [
+      ['Dashboard Cash Bank', LayoutDashboard],
+      ['Pengajuan CA', FileText],
+      ['Pencairan', Send],
+      ['Pertanggungjawaban CA', ClipboardCheck],
+      ['Pengeluaran', Receipt],
+      ['Penerimaan', Wallet],
+      ['Buku Harian', BookOpen],
+      ['Penutupan', Lock],
+      ['Resume Dana Pengelola', FileBarChart],
+      ['Bank Statement', CreditCard]
+    ]},
+    { category: 'Anggaran', items: [
+      ['Resume Anggaran', PieChart],
+      ['Approve Anggaran', CheckCircle]
+    ]},
+    { category: 'Akuntansi', items: [
+      ['Saldo Awal', Landmark],
+      ['Rekap Jurnal', BookText],
+      ['Buku Besar', Book],
+      ['Trial Balance', Scale]
+    ]},
+    { category: 'Laporan', items: [
+      ['Laporan Keuangan', BarChart3],
+      ['Laporan Bulanan', Calendar]
+    ]},
+    { category: 'Aset', items: [
+      ['Entry Aset', Building2],
+      ['List Aset', Database]
+    ]},
+    { category: 'Setting Configuration', items: [
+      ['Profile Lembaga', Briefcase],
+      ['Program', Settings]
+    ]},
+    { category: 'FINS', items: [
+      ['Kode Bank', Hash],
+      ['Rekening Bank', CreditCard],
+      ['Chart of Accounts', FileSpreadsheet],
+      ['COA Kantor', Building2],
+      ['Saldo Dana', Wallet],
+      ['Level Approve', BadgeCheck],
+      ['Rumus Report', Calculator]
+    ]}
+  ],
+
+  hcm: [
+    { category: 'Kepegawaian', items: [
+      ['Data Karyawan', Users]
+    ]},
+    { category: 'Presensi', items: [
+      ['Kehadiran Karyawan', CalendarCheck]
+    ]},
+    { category: 'Produktivitas', items: [
+      ['Aktivitas Harian', ListChecks]
+    ]}
+  ],
+
+  document: [
+    { category: 'Kearsipan', items: [
+      ['Daftar Dokumen', FileText],
+      ['Surat Menyurat', Mail]
+    ]}
+  ],
+
+  crowdfunding: null
+};
+
+const CROWDFUNDING_ITEMS = [
+  ['Kampanye', Megaphone],
+  ['Kabar Penyaluran', MessageSquare],
+  ['Kategori', Tag],
+  ['Transaksi', Repeat],
+  ['Donatur', Users],
+  ['Afiliasi', Handshake],
+  ['Penarikan', LogOut],
+  ['Notifikasi', Bell],
+  ['Admin', Shield],
+  ['Payment Channels', CreditCard],
+  ['Log Sistem', Hash],
+  ['Pengaturan', Settings]
+];
+
 const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSidebarCollapsed, toggleSidebar }) => {
+  // Tracks which accordion category is open per module, e.g. { accounting: 'Operasional' }
+  const [openGroup, setOpenGroup] = useState(() => {
+    const initial = {};
+    Object.entries(MODULE_GROUPS).forEach(([mod, groups]) => {
+      if (groups && groups.length) initial[mod] = groups[0].category;
+    });
+    return initial;
+  });
+
+  // Keep the group containing the active menu item expanded, so navigating
+  // (including via deep links/state restoration) never hides the current page.
+  useEffect(() => {
+    const groups = MODULE_GROUPS[currentModule];
+    if (!groups) return;
+    const match = groups.find(g => g.items.some(([name]) => name === activeMenu));
+    if (match) {
+      setOpenGroup(prev => (prev[currentModule] === match.category ? prev : { ...prev, [currentModule]: match.category }));
+    }
+  }, [currentModule, activeMenu]);
+
+  const toggleGroup = (moduleKey, category) => {
+    setOpenGroup(prev => ({ ...prev, [moduleKey]: prev[moduleKey] === category ? null : category }));
+  };
 
   const renderMenuItem = (name, Icon) => {
     const isActive = activeMenu === name;
     return (
-      <a href="#" className={`menu-item ${isActive ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); onMenuChange(name); }}>
+      <a key={name} href="#" className={`menu-item ${isActive ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); onMenuChange(name); }}>
         <div className="menu-item-left">
           <Icon className="icon" />
           <span>{name}</span>
@@ -24,136 +182,30 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
     );
   };
 
-  const renderAccountingMenus = () => (
-    <>
-      <div className="menu-category">Operasional</div>
-      {renderMenuItem('Transaksi Keuangan', Wallet)}
-      {renderMenuItem('Pengeluaran Ops.', Receipt)}
-      {renderMenuItem('Anggaran & Realisasi', PieChart)}
-      {renderMenuItem('Aset Tetap', Building2)}
-      {renderMenuItem('Hutang & Piutang', CreditCard)}
-      {renderMenuItem('Program Qurban', Activity)}
-      {renderMenuItem('Program Zakat', Heart)}
-      {renderMenuItem('Grant & Hibah', Gift)}
-      {renderMenuItem('SDM & Penggajian', Users)}
-
-      <div className="menu-category">Konfigurasi</div>
-      {renderMenuItem('Master Data', Database)}
-      {renderMenuItem('Konfigurasi Program', Settings)}
-      {renderMenuItem('Pengaturan Laporan', FileText)}
-      {renderMenuItem('Periode Akuntansi', Calendar)}
-
-      <div className="menu-category">Laporan</div>
-      {renderMenuItem('Laporan PSAK 409', BarChart3)}
-      {renderMenuItem('Laporan Donasi', TrendingUp)}
-      {renderMenuItem('Laporan Operasional', Briefcase)}
-      {renderMenuItem('Laporan Grant', Gift)}
-      {renderMenuItem('Laporan SDM', Users)}
-
-      <div className="menu-category">Monitoring</div>
-      {renderMenuItem('Rekonsiliasi Bank', FileBarChart)}
-      {renderMenuItem('Audit Trail', Shield)}
-      {renderMenuItem('Monitoring Sistem', MonitorCheck)}
-    </>
-  );
-
-  const renderPenyaluranMenus = () => (
-    <>
-      <div className="menu-category">Operasional</div>
-      {renderMenuItem('Peta Penyaluran', MapPin)}
-      {renderMenuItem('Pengajuan Penyaluran', Send)}
-      {renderMenuItem('Penerima Manfaat', Users)}
-      {renderMenuItem('Distribusi Massal', Repeat)}
-
-      <div className="menu-category">Pertanggungjawaban</div>
-      {renderMenuItem('Pertanggungjawaban', ClipboardCheck)}
-
-      <div className="menu-category">Laporan</div>
-      {renderMenuItem('Laporan Penyaluran', BarChart3)}
-    </>
-  );
-
-  const renderFinsMenus = () => (
-    <>
-      <div className="menu-category">Home</div>
-      {renderMenuItem('Dashboard Cash Bank', LayoutDashboard)}
-      {renderMenuItem('Pengajuan CA', FileText)}
-      {renderMenuItem('Pencairan', Send)}
-      {renderMenuItem('Pertanggungjawaban CA', ClipboardCheck)}
-      {renderMenuItem('Pengeluaran', Receipt)}
-      {renderMenuItem('Penerimaan', Wallet)}
-      {renderMenuItem('Buku Harian', BookOpen)}
-      {renderMenuItem('Penutupan', Lock)}
-      {renderMenuItem('Resume Dana Pengelola', FileBarChart)}
-      {renderMenuItem('Bank Statement', CreditCard)}
-
-      <div className="menu-category">Anggaran</div>
-      {renderMenuItem('Resume Anggaran', PieChart)}
-      {renderMenuItem('Approve Anggaran', CheckCircle)}
-
-      <div className="menu-category">Akuntansi</div>
-      {renderMenuItem('Saldo Awal', Landmark)}
-      {renderMenuItem('Rekap Jurnal', BookText)}
-      {renderMenuItem('Buku Besar', Book)}
-      {renderMenuItem('Trial Balance', Scale)}
-
-      <div className="menu-category">Laporan</div>
-      {renderMenuItem('Laporan Keuangan', BarChart3)}
-      {renderMenuItem('Laporan Bulanan', Calendar)}
-
-      <div className="menu-category">Aset</div>
-      {renderMenuItem('Entry Aset', Building2)}
-      {renderMenuItem('List Aset', Database)}
-
-      <div className="menu-category">Setting Configuration</div>
-      {renderMenuItem('Profile Lembaga', Briefcase)}
-      {renderMenuItem('Program', Settings)}
-
-      <div className="menu-category">FINS</div>
-      {renderMenuItem('Kode Bank', Hash)}
-      {renderMenuItem('Rekening Bank', CreditCard)}
-      {renderMenuItem('Chart of Accounts', FileSpreadsheet)}
-      {renderMenuItem('COA Kantor', Building2)}
-      {renderMenuItem('Saldo Dana', Wallet)}
-      {renderMenuItem('Level Approve', BadgeCheck)}
-      {renderMenuItem('Rumus Report', Calculator)}
-    </>
-  );
-
-  const renderHcmMenus = () => (
-    <>
-      <div className="menu-category">Kepegawaian</div>
-      {renderMenuItem('Data Karyawan', Users)}
-
-      <div className="menu-category">Presensi</div>
-      {renderMenuItem('Kehadiran Karyawan', CalendarCheck)}
-    </>
-  );
-
-  const renderDocumentMenus = () => (
-    <>
-      <div className="menu-category">Kearsipan</div>
-      {renderMenuItem('Daftar Dokumen', FileText)}
-      {renderMenuItem('Surat Menyurat', Mail)}
-    </>
-  );
-
-  const renderCrowdfundingMenus = () => (
-    <>
-      {renderMenuItem('Kampanye', Megaphone)}
-      {renderMenuItem('Kabar Penyaluran', MessageSquare)}
-      {renderMenuItem('Kategori', Tag)}
-      {renderMenuItem('Transaksi', Repeat)}
-      {renderMenuItem('Donatur', Users)}
-      {renderMenuItem('Afiliasi', Handshake)}
-      {renderMenuItem('Penarikan', LogOut)}
-      {renderMenuItem('Notifikasi', Bell)}
-      {renderMenuItem('Admin', Shield)}
-      {renderMenuItem('Payment Channels', CreditCard)}
-      {renderMenuItem('Log Sistem', Hash)}
-      {renderMenuItem('Pengaturan', Settings)}
-    </>
-  );
+  const renderAccordionMenus = (moduleKey) => {
+    const groups = MODULE_GROUPS[moduleKey];
+    if (!groups) return null;
+    return groups.map(group => {
+      const isOpen = openGroup[moduleKey] === group.category;
+      return (
+        <div key={group.category} className="menu-accordion-group">
+          <button
+            type="button"
+            className={`menu-category-toggle ${isOpen ? 'open' : ''}`}
+            onClick={() => toggleGroup(moduleKey, group.category)}
+          >
+            <span>{group.category}</span>
+            <ChevronDown size={14} className="menu-category-chevron" />
+          </button>
+          {isOpen && (
+            <div className="menu-accordion-body">
+              {group.items.map(([name, Icon]) => renderMenuItem(name, Icon))}
+            </div>
+          )}
+        </div>
+      );
+    });
+  };
 
   return (
     <aside className="sidebar">
@@ -161,8 +213,8 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
         <div className="rail-logo">
           <Heart size={32} color="var(--primary-color)" />
         </div>
-        
-        <button 
+
+        <button
           className={`rail-item ${currentModule === 'crowdfunding' ? 'active' : ''}`}
           onClick={() => onModuleChange('crowdfunding')}
           title="Modul Crowdfunding"
@@ -230,17 +282,9 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
         <nav style={{ paddingBottom: '32px' }}>
           {(currentModule === 'fins' || currentModule === 'document') ? null : renderMenuItem('Dashboard', LayoutDashboard)}
 
-          {currentModule === 'accounting'
-            ? renderAccountingMenus()
-            : currentModule === 'fins'
-              ? renderFinsMenus()
-              : currentModule === 'hcm'
-                ? renderHcmMenus()
-                : currentModule === 'document'
-                  ? renderDocumentMenus()
-                  : currentModule === 'penyaluran'
-                    ? renderPenyaluranMenus()
-                    : renderCrowdfundingMenus()}
+          {currentModule === 'crowdfunding'
+            ? CROWDFUNDING_ITEMS.map(([name, Icon]) => renderMenuItem(name, Icon))
+            : renderAccordionMenus(currentModule)}
         </nav>
       </div>
     </aside>

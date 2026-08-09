@@ -364,7 +364,7 @@ const TransaksiKeuangan = () => {
         ...formFields,
         nominal: parseFloat(formFields.nominal) || 0,
         nik_input: 'ADMIN001',
-        approved_by: 'Irvan Superadmin',
+        approved_by: 'Asep Superadmin',
         approved_at: new Date().toISOString()
       };
       setJurnalPenyesuaian(prev => [newItem, ...prev]);
