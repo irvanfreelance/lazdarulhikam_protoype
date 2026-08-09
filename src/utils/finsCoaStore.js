@@ -96,6 +96,46 @@ export const INITIAL_TRIAL_BALANCE = [
   { coa: '5.03.008', saldoAwal: 0, debetMutasi: 2500000, kreditMutasi: 0, debetDisesuaikan: 0, kreditDisesuaikan: 0 },
 ];
 
+// --- SALDO AWAL (FINS > Akuntansi > Saldo Awal) ---
+// Editable opening-balance snapshots per akun leaf (includeBuku: true), keyed
+// by tanggal penutupan. Seeded 1:1 from INITIAL_TRIAL_BALANCE's saldoAwal so
+// Trial Balance's "Saldo Awal" column keeps showing the same numbers by
+// default — but now sourced from here, so editing this page changes TB too.
+export const INITIAL_SALDO_AWAL = INITIAL_TRIAL_BALANCE.map((m, idx) => ({
+  id: String(idx + 1),
+  coa: m.coa,
+  tanggal: '2024-12-31',
+  saldoAkhir: m.saldoAwal,
+  officeId: ''
+}));
+
+const SALDO_AWAL_KEY = 'fins_saldo_awal_v1';
+
+export const getSaldoAwal = () => {
+  const saved = localStorage.getItem(SALDO_AWAL_KEY);
+  return saved ? JSON.parse(saved) : INITIAL_SALDO_AWAL;
+};
+
+export const saveSaldoAwal = (rows) => {
+  localStorage.setItem(SALDO_AWAL_KEY, JSON.stringify(rows));
+};
+
+// Returns { [coa]: saldoAkhir } using the latest saldo-awal snapshot dated on
+// or before `throughDateISO`, summed across kantor when several rows share
+// that date. Used by Trial Balance so its Saldo Awal column always reflects
+// whatever was entered/saved on this page, cascading to later periods.
+export const getSaldoAwalMap = (throughDateISO, rows = null) => {
+  const all = rows || getSaldoAwal();
+  const eligibleDates = Array.from(new Set(all.map(r => r.tanggal))).filter(d => d <= throughDateISO);
+  if (eligibleDates.length === 0) return {};
+  const snapshotDate = eligibleDates.sort().pop();
+  const map = {};
+  all.filter(r => r.tanggal === snapshotDate).forEach(r => {
+    map[r.coa] = (map[r.coa] || 0) + (r.saldoAkhir || 0);
+  });
+  return map;
+};
+
 export const ASSET_DEPRECIATION_METHODS = ['Garis Lurus', 'Saldo Menurun'];
 
 // Default COA wiring for asset depreciation journals (FINS > Aset).

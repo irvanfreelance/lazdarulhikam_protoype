@@ -3,7 +3,7 @@ import {
   RefreshCw, Search, Download, FileSpreadsheet, FileText, File,
   ChevronRight, ChevronDown, Folder, ExternalLink, Lock, Unlock
 } from 'lucide-react';
-import { INITIAL_COA, INITIAL_TRIAL_BALANCE, OFFICES, levelOf } from '../utils/finsCoaStore';
+import { INITIAL_COA, INITIAL_TRIAL_BALANCE, OFFICES, levelOf, getSaldoAwalMap } from '../utils/finsCoaStore';
 import SearchableSelect from '../components/SearchableSelect';
 
 const YEARS = [2024, 2025, 2026, 2027];
@@ -24,12 +24,13 @@ const childrenMap = INITIAL_COA.reduce((map, c) => {
   if (c.parentCoa) { (map[c.parentCoa] = map[c.parentCoa] || []).push(c); }
   return map;
 }, {});
-const mutasiByCoa = INITIAL_TRIAL_BALANCE.reduce((map, m) => { map[m.coa] = m; return map; }, {});
 const roots = INITIAL_COA.filter(c => !c.parentCoa);
 
 const emptyMutasi = { saldoAwal: 0, debetMutasi: 0, kreditMutasi: 0, debetDisesuaikan: 0, kreditDisesuaikan: 0 };
 
-const rollup = (coa) => {
+// mutasiByCoa is passed in (not module-level) because saldoAwal now comes
+// from the editable Saldo Awal page and varies with the selected period.
+const rollup = (coa, mutasiByCoa) => {
   const children = childrenMap[coa] || [];
   const own = mutasiByCoa[coa] || emptyMutasi;
   if (children.length === 0) return { ...own };
@@ -37,7 +38,7 @@ const rollup = (coa) => {
   // Inventaris) AND have children (e.g. its Akumulasi Penyusutan contra
   // account) at the same time, so both must be summed together.
   return children.reduce((acc, child) => {
-    const v = rollup(child.coa);
+    const v = rollup(child.coa, mutasiByCoa);
     return {
       saldoAwal: acc.saldoAwal + v.saldoAwal,
       debetMutasi: acc.debetMutasi + v.debetMutasi,
@@ -70,6 +71,24 @@ const TrialBalance = () => {
 
   const periodKey = `${appliedPeriod.kantor}-${appliedPeriod.tahun}-${appliedPeriod.bulan}`;
   const isClosed = closedPeriods.has(periodKey);
+
+  // Saldo Awal for this period = the latest Saldo Awal snapshot saved on or
+  // before the last day of the month prior to the selected period, so e.g. a
+  // 2024-12-31 snapshot feeds Jan..Dec 2025 (and later) until a newer one is saved.
+  const throughDate = useMemo(() => {
+    const d = new Date(Number(appliedPeriod.tahun), Number(appliedPeriod.bulan) - 1, 1);
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().substring(0, 10);
+  }, [appliedPeriod]);
+
+  const mutasiByCoa = useMemo(() => {
+    const saldoAwalMap = getSaldoAwalMap(throughDate);
+    const map = {};
+    INITIAL_TRIAL_BALANCE.forEach(m => {
+      map[m.coa] = { ...m, saldoAwal: saldoAwalMap[m.coa] ?? m.saldoAwal };
+    });
+    return map;
+  }, [throughDate]);
 
   const officeOptions = useMemo(() => OFFICES.map(o => ({ value: o.id, label: o.nama })), []);
   const coaOptions = useMemo(() => [
@@ -146,7 +165,7 @@ const TrialBalance = () => {
     const hasChildren = children.length > 0;
     const forcedOpen = coaFocusVisibleSet ? coaFocusVisibleSet.has(coa) && coaFocus !== coa : false;
     const isOpen = hasChildren && (expandedSet.has(coa) || forcedOpen);
-    const values = withComputed(rollup(coa));
+    const values = withComputed(rollup(coa, mutasiByCoa));
 
     return (
       <React.Fragment key={coa}>
@@ -186,9 +205,9 @@ const TrialBalance = () => {
   const visibleRoots = groupFilter === 'all' ? roots : roots.filter(r => r.group === groupFilter);
 
   // --- Balance checks ---
-  const totalAsetAwal = rollup('100.00.000.000').saldoAwal;
-  const totalKewajibanAwal = rollup('200.00.000.000').saldoAwal;
-  const totalSaldoDanaAwal = rollup('300.00.000.000').saldoAwal;
+  const totalAsetAwal = rollup('100.00.000.000', mutasiByCoa).saldoAwal;
+  const totalKewajibanAwal = rollup('200.00.000.000', mutasiByCoa).saldoAwal;
+  const totalSaldoDanaAwal = rollup('300.00.000.000', mutasiByCoa).saldoAwal;
   const saldoAwalBalanced = Math.abs(totalAsetAwal - (totalKewajibanAwal + totalSaldoDanaAwal)) < EPS;
 
   const totalDebetMutasi = INITIAL_TRIAL_BALANCE.reduce((s, m) => s + m.debetMutasi, 0);

@@ -5,7 +5,7 @@ import {
   BarChart3, TrendingUp, Activity, Briefcase, MonitorCheck, Megaphone,
   MessageSquare, Tag, Repeat, Handshake, LogOut, Bell, Shield, Hash, Search,
   Calculator, Globe, ChevronRight, ChevronDown, ChevronLeft, GraduationCap, Landmark,
-  ClipboardCheck, BookOpen, Lock, CheckCircle, BookText, Scale, BadgeCheck,
+  ClipboardCheck, BookOpen, Lock, BookText, Scale, BadgeCheck,
   FileSpreadsheet, Book, IdCard, CalendarCheck, Folder, Mail, Truck, MapPin,
   ListChecks
 } from 'lucide-react';
@@ -71,12 +71,7 @@ const MODULE_GROUPS = {
       ['Penerimaan', Wallet],
       ['Buku Harian', BookOpen],
       ['Penutupan', Lock],
-      ['Resume Dana Pengelola', FileBarChart],
-      ['Bank Statement', CreditCard]
-    ]},
-    { category: 'Anggaran', items: [
-      ['Resume Anggaran', PieChart],
-      ['Approve Anggaran', CheckCircle]
+      ['Resume Dana Pengelola', FileBarChart]
     ]},
     { category: 'Akuntansi', items: [
       ['Saldo Awal', Landmark],
