@@ -34,6 +34,7 @@ import Program from './pages/Program';
 import KodeBank from './pages/KodeBank';
 import RekeningBank from './pages/RekeningBank';
 import DashboardCashBank from './pages/DashboardCashBank';
+import PengajuanCA from './pages/PengajuanCA';
 import ChartOfAccounts from './pages/ChartOfAccounts';
 import CoaKantor from './pages/CoaKantor';
 import SaldoDana from './pages/SaldoDana';
@@ -43,6 +44,17 @@ import EntryAset from './pages/EntryAset';
 import ListAset from './pages/ListAset';
 import BukuBesar from './pages/BukuBesar';
 import TrialBalance from './pages/TrialBalance';
+import SaldoAwal from './pages/SaldoAwal';
+import Penerimaan from './pages/Penerimaan';
+import RekapJurnal from './pages/RekapJurnal';
+import LaporanBulanan from './pages/LaporanBulanan';
+import Penutupan from './pages/Penutupan';
+import Pencairan from './pages/Pencairan';
+import BukuHarian from './pages/BukuHarian';
+import Pengeluaran from './pages/Pengeluaran';
+import ResumeDanaPengelola from './pages/ResumeDanaPengelola';
+import LaporanKeuangan from './pages/LaporanKeuangan';
+import Pertanggungjawaban from './pages/Pertanggungjawaban';
 import DocumentList from './pages/DocumentList';
 import SuratMenyurat from './pages/SuratMenyurat';
 import PenyaluranDashboard from './pages/PenyaluranDashboard';
@@ -172,6 +184,10 @@ function App() {
       switch (activeMenu) {
         case 'Dashboard Cash Bank':
           return <DashboardCashBank />;
+        case 'Pengajuan CA':
+          return <PengajuanCA />;
+        case 'Pencairan':
+          return <Pencairan />;
         case 'Profile Lembaga':
           return <ProfileLembaga />;
         case 'Program':
@@ -194,10 +210,30 @@ function App() {
           return <EntryAset />;
         case 'List Aset':
           return <ListAset />;
+        case 'Saldo Awal':
+          return <SaldoAwal />;
         case 'Buku Besar':
           return <BukuBesar />;
         case 'Trial Balance':
           return <TrialBalance />;
+        case 'Rekap Jurnal':
+          return <RekapJurnal />;
+        case 'Penerimaan':
+          return <Penerimaan />;
+        case 'Buku Harian':
+          return <BukuHarian />;
+        case 'Pengeluaran':
+          return <Pengeluaran />;
+        case 'Resume Dana Pengelola':
+          return <ResumeDanaPengelola />;
+        case 'Laporan Keuangan':
+          return <LaporanKeuangan />;
+        case 'Laporan Bulanan':
+          return <LaporanBulanan />;
+        case 'Penutupan':
+          return <Penutupan />;
+        case 'Pertanggungjawaban CA':
+          return <Pertanggungjawaban />;
         default:
           return <ComingSoon title={activeMenu} />;
       }

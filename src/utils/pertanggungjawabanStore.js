@@ -1,0 +1,92 @@
+// --- SEED DATA FOR FINS > HOME > PERTANGGUNGJAWABAN (Cash Advance) ---
+
+export const CURRENT_USER = { id: '1032021001001', nama: 'Asep Saepul' };
+
+export const JENIS_TRANSAKSI_REALISASI = [
+  { coa: '503.02.004.027', nama: 'Beban Operasional Lain - lain' },
+  { coa: '503.02.001.001', nama: 'Beban Transportasi' },
+  { coa: '503.02.002.003', nama: 'Beban Konsumsi Kegiatan' },
+  { coa: '503.02.003.010', nama: 'Beban Alat Tulis Kantor' },
+  { coa: '503.02.004.015', nama: 'Beban Sosialisasi Program' }
+];
+
+export const INITIAL_PERTANGGUNGJAWABAN = [
+  {
+    id: '1',
+    idBuku: 'S0012608070010001',
+    tanggal: '2026-08-03',
+    coaDebet: '101.10.000.000',
+    namaAkun: 'Uang Muka Kegiatan',
+    keterangan: '#CA KAS KECIL',
+    quantity: 1,
+    nominal: 3000000,
+    userInput: 'Desy Bunga Sari',
+    officeId: '1',
+    coaKredit: '101.02.002.005',
+    namaAkunKredit: 'BSI Penyaluran 8889292939',
+    noResi: '626080400100001',
+    referensi: '',
+    status: 'unapprove',
+    pengaju: 'Desy Bunga Sari S.Si',
+    pengajuJabatan: 'Manager Finance',
+    pencair: 'Aulia Anugraha',
+    pencairJabatan: 'Staf Akunting',
+    approver: 'Desy Bunga Sari S.Si',
+    approverJabatan: 'Manager Finance',
+    pengembali: 'Super Admin',
+    pengembaliJabatan: 'Direktur Utama',
+    realisasiLines: []
+  },
+  {
+    id: '2',
+    idBuku: 'S0012606180010001',
+    tanggal: '2026-06-18',
+    coaDebet: '101.10.000.000',
+    namaAkun: 'Uang Muka Kegiatan',
+    keterangan: '#CA Sosialisasi dan Edukasi Program',
+    quantity: 1,
+    nominal: 1750000,
+    userInput: 'Syahrul Azwin',
+    officeId: '1',
+    coaKredit: '101.02.002.005',
+    namaAkunKredit: 'BSI Penyaluran 8889292939',
+    noResi: '626061800100001',
+    referensi: '',
+    status: 'unapprove',
+    pengaju: 'Syahrul Azwin',
+    pengajuJabatan: 'Staf Program',
+    pencair: 'Aulia Anugraha',
+    pencairJabatan: 'Staf Akunting',
+    approver: 'Desy Bunga Sari S.Si',
+    approverJabatan: 'Manager Finance',
+    pengembali: 'Super Admin',
+    pengembaliJabatan: 'Direktur Utama',
+    realisasiLines: []
+  },
+  {
+    id: '3',
+    idBuku: 'S0012606150010003',
+    tanggal: '2026-06-18',
+    coaDebet: '101.10.000.000',
+    namaAkun: 'Uang Muka Kegiatan',
+    keterangan: '#CA Sosialisasi Program Crowdfunding',
+    quantity: 1,
+    nominal: 1500000,
+    userInput: 'Syahrul Azwin',
+    officeId: '1',
+    coaKredit: '101.02.002.005',
+    namaAkunKredit: 'BSI Penyaluran 8889292939',
+    noResi: '626061500100003',
+    referensi: '',
+    status: 'unapprove',
+    pengaju: 'Syahrul Azwin',
+    pengajuJabatan: 'Staf Program',
+    pencair: 'Aulia Anugraha',
+    pencairJabatan: 'Staf Akunting',
+    approver: 'Desy Bunga Sari S.Si',
+    approverJabatan: 'Manager Finance',
+    pengembali: 'Super Admin',
+    pengembaliJabatan: 'Direktur Utama',
+    realisasiLines: []
+  }
+];

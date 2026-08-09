@@ -51,7 +51,16 @@ export const INITIAL_CASH_BANK_ACCOUNTS = [
   { id: '9', coa: '101.02.002.002', namaAkun: 'BSI Sisa Salur', officeId: '1', saldoAwal: 6200000, debet: 0, kredit: 0, lastOpname: null, closing: false, active: true },
   { id: '10', coa: '101.02.002.003', namaAkun: 'BSI Penyaluran', officeId: '1', saldoAwal: 47800000, debet: 2200000, kredit: 9600000, lastOpname: '2025-12-31', closing: false, active: true },
   { id: '11', coa: '101.01.001.000', namaAkun: 'Kas Kecil Cabang Bandung', officeId: '2', saldoAwal: 3500000, debet: 900000, kredit: 650000, lastOpname: '2026-08-06', closing: false, active: true },
-  { id: '12', coa: '101.02.001.004', namaAkun: 'BCA Penerimaan Cabang Bandung', officeId: '2', saldoAwal: 21000000, debet: 3100000, kredit: 800000, lastOpname: null, closing: false, active: false }
+  { id: '12', coa: '101.02.001.004', namaAkun: 'BCA Penerimaan Cabang Bandung', officeId: '2', saldoAwal: 21000000, debet: 3100000, kredit: 800000, lastOpname: null, closing: false, active: false },
+  { id: '13', coa: '101.02.099.001', namaAkun: 'Midtrans', officeId: '1', saldoAwal: 9800000, debet: 2400000, kredit: 2400000, lastOpname: null, closing: false, active: true },
+  { id: '14', coa: '101.02.099.002', namaAkun: 'Link Aja', officeId: '1', saldoAwal: 3200000, debet: 750000, kredit: 750000, lastOpname: null, closing: false, active: true },
+  { id: '15', coa: '101.02.099.003', namaAkun: 'Shopeepay', officeId: '1', saldoAwal: 4100000, debet: 980000, kredit: 980000, lastOpname: null, closing: false, active: true },
+  { id: '16', coa: '101.02.099.004', namaAkun: 'Xendit', officeId: '1', saldoAwal: 12600000, debet: 3300000, kredit: 3300000, lastOpname: null, closing: false, active: true },
+  { id: '17', coa: '101.02.099.005', namaAkun: 'GoPay', officeId: '1', saldoAwal: 2750000, debet: 600000, kredit: 600000, lastOpname: null, closing: false, active: true },
+  { id: '18', coa: '101.01.001.000', namaAkun: 'Kas Kecil Cabang Surabaya', officeId: '3', saldoAwal: 2900000, debet: 500000, kredit: 300000, lastOpname: null, closing: false, active: true },
+  { id: '19', coa: '101.02.001.005', namaAkun: 'BNI Penerimaan Cabang Surabaya', officeId: '3', saldoAwal: 17500000, debet: 2100000, kredit: 950000, lastOpname: null, closing: false, active: true },
+  { id: '20', coa: '101.01.001.000', namaAkun: 'Kas Kecil Cabang Medan', officeId: '4', saldoAwal: 1800000, debet: 400000, kredit: 250000, lastOpname: null, closing: false, active: true },
+  { id: '21', coa: '101.02.001.006', namaAkun: 'Mandiri Penerimaan Cabang Medan', officeId: '4', saldoAwal: 13200000, debet: 1600000, kredit: 700000, lastOpname: null, closing: false, active: true }
 ];
 
 // Ringkasan pengajuan/transaksi FINS yang masih menunggu approval hari ini.
