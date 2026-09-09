@@ -95,6 +95,15 @@
   --primary-color: #e11d48; /* Rose */
 }
 
+.theme-crm {
+  --rail-bg: #831843; /* Pink 900 */
+  --sub-bg: #9d174d; /* Pink 800 */
+  --sub-text: #fbcfe8;
+  --sub-text-hover: #ffffff;
+  --sub-active-bg: rgba(255, 255, 255, 0.15);
+  --primary-color: #db2777; /* Pink */
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

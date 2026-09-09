@@ -7,7 +7,8 @@ import {
   Calculator, Globe, ChevronRight, ChevronDown, ChevronLeft, GraduationCap, Landmark,
   ClipboardCheck, BookOpen, Lock, BookText, Scale, BadgeCheck,
   FileSpreadsheet, Book, IdCard, CalendarCheck, Folder, Mail, Truck, MapPin,
-  ListChecks
+  ListChecks, Contact, UserCheck, RefreshCw,
+  FileCheck, Filter, TrendingDown, Target, ArrowLeftRight, LayoutGrid, FilePlus
 } from 'lucide-react';
 
 // Grouped menu definitions per module. Each group renders as a collapsible
@@ -49,7 +50,9 @@ const MODULE_GROUPS = {
   penyaluran: [
     { category: 'Operasional', items: [
       ['Peta Penyaluran', MapPin],
-      ['Pengajuan Penyaluran', Send],
+      ['Pengajuan Penyaluran', FileCheck],
+      ['Entry Penyaluran', FilePlus],
+      ['List Penyaluran', ListChecks],
       ['Penerima Manfaat', Users],
       ['Distribusi Massal', Repeat]
     ]},
@@ -118,6 +121,30 @@ const MODULE_GROUPS = {
     { category: 'Kearsipan', items: [
       ['Daftar Dokumen', FileText],
       ['Surat Menyurat', Mail]
+    ]}
+  ],
+
+  crm: [
+    { category: 'Donatur', items: [
+      ['Data Donatur', Users],
+      ['Verifikasi Donatur', UserCheck]
+    ]},
+    { category: 'Transaksi', items: [
+      ['List Transaksi', Repeat],
+      ['List Transaksi Rutin', RefreshCw],
+      ['Bukti Setor', Receipt],
+      ['List Transaksi Qurban', Gift]
+    ]},
+    { category: 'Report Management', items: [
+      ['Analisa Donatur', PieChart],
+      ['Analisa Transaksi', BarChart3],
+      ['Dashboard Transaksi', LayoutDashboard],
+      ['Report Transaksi', FileBarChart],
+      ['Transaksi Funnel', Filter],
+      ['Analisis Salur', TrendingDown],
+      ['Analisis PM', Target],
+      ['Himpun Vs Salur', ArrowLeftRight],
+      ['Dashboard Penghimpunan', LayoutGrid]
     ]}
   ],
 
@@ -262,12 +289,21 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
           <Folder size={24} />
           <span className="rail-item-caption">Document</span>
         </button>
+
+        <button
+          className={`rail-item ${currentModule === 'crm' ? 'active' : ''}`}
+          onClick={() => onModuleChange('crm')}
+          title="Modul CRM"
+        >
+          <Contact size={24} />
+          <span className="rail-item-caption">CRM</span>
+        </button>
       </div>
 
       <div className="sidebar-sub">
         <div className="sidebar-sub-header">
           <div className="sidebar-sub-title">
-            {currentModule === 'accounting' ? 'Akuntansi' : currentModule === 'fins' ? 'FINS' : currentModule === 'hcm' ? 'HCM' : currentModule === 'document' ? 'Document' : currentModule === 'penyaluran' ? 'Penyaluran' : 'Crowdfunding'}
+            {currentModule === 'accounting' ? 'Akuntansi' : currentModule === 'fins' ? 'FINS' : currentModule === 'hcm' ? 'HCM' : currentModule === 'document' ? 'Document' : currentModule === 'penyaluran' ? 'Penyaluran' : currentModule === 'crm' ? 'CRM' : 'Crowdfunding'}
           </div>
           <div className="sidebar-sub-subtitle">
             MANAJEMEN
@@ -275,7 +311,7 @@ const Sidebar = ({ currentModule, onModuleChange, activeMenu, onMenuChange, isSi
         </div>
 
         <nav style={{ paddingBottom: '32px' }}>
-          {(currentModule === 'fins' || currentModule === 'document') ? null : renderMenuItem('Dashboard', LayoutDashboard)}
+          {(currentModule === 'fins' || currentModule === 'document' || currentModule === 'crm') ? null : renderMenuItem('Dashboard', LayoutDashboard)}
 
           {currentModule === 'crowdfunding'
             ? CROWDFUNDING_ITEMS.map(([name, Icon]) => renderMenuItem(name, Icon))
