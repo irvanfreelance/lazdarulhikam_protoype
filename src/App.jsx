@@ -24,6 +24,20 @@ import MonitoringSistem from './pages/MonitoringSistem';
 import LaporanPSAK409 from './pages/LaporanPSAK409';
 import DashboardCrowdfunding from './pages/DashboardCrowdfunding';
 import KampanyeList from './pages/KampanyeList';
+import ListDonatur from './pages/ListDonatur';
+import VerifikasiDonatur from './pages/VerifikasiDonatur';
+import ListTransaksi from './pages/ListTransaksi';
+import ListTransaksiRutin from './pages/ListTransaksiRutin';
+import BuktiSetor from './pages/BuktiSetor';
+import AnalisaDonatur from './pages/AnalisaDonatur';
+import AnalisaTransaksi from './pages/AnalisaTransaksi';
+import DashboardTransaksi from './pages/DashboardTransaksi';
+import ReportTransaksi from './pages/ReportTransaksi';
+import TransaksiFunnel from './pages/TransaksiFunnel';
+import AnalisisSalur from './pages/AnalisisSalur';
+import AnalisisPM from './pages/AnalisisPM';
+import HimpunVsSalur from './pages/HimpunVsSalur';
+import DashboardPenghimpunan from './pages/DashboardPenghimpunan';
 import HCMDashboard from './pages/HCMDashboard';
 import HCMKaryawan from './pages/HCMKaryawan';
 import HCMKehadiran from './pages/HCMKehadiran';
@@ -60,6 +74,8 @@ import SuratMenyurat from './pages/SuratMenyurat';
 import PenyaluranDashboard from './pages/PenyaluranDashboard';
 import PetaPenyaluran from './pages/PetaPenyaluran';
 import PenyaluranPengajuan from './pages/PenyaluranPengajuan';
+import EntryPenyaluran from './pages/EntryPenyaluran';
+import ListPenyaluran from './pages/ListPenyaluran';
 import PenerimaManfaatPenyaluran from './pages/PenerimaManfaatPenyaluran';
 import DistribusiMassal from './pages/DistribusiMassal';
 import PertanggungjawabanPenyaluran from './pages/PertanggungjawabanPenyaluran';
@@ -80,6 +96,8 @@ function App() {
       setActiveMenu('Dashboard Cash Bank');
     } else if (module === 'document') {
       setActiveMenu('Daftar Dokumen');
+    } else if (module === 'crm') {
+      setActiveMenu('Data Donatur');
     } else {
       setActiveMenu('Dashboard');
     }
@@ -162,6 +180,10 @@ function App() {
           return <PetaPenyaluran />;
         case 'Pengajuan Penyaluran':
           return <PenyaluranPengajuan />;
+        case 'Entry Penyaluran':
+          return <EntryPenyaluran />;
+        case 'List Penyaluran':
+          return <ListPenyaluran />;
         case 'Penerima Manfaat':
           return <PenerimaManfaatPenyaluran />;
         case 'Distribusi Massal':
@@ -256,6 +278,39 @@ function App() {
           return <DocumentList />;
         case 'Surat Menyurat':
           return <SuratMenyurat />;
+        default:
+          return <ComingSoon title={activeMenu} />;
+      }
+    } else if (currentModule === 'crm') {
+      switch (activeMenu) {
+        case 'Data Donatur':
+          return <ListDonatur />;
+        case 'Verifikasi Donatur':
+          return <VerifikasiDonatur />;
+        case 'List Transaksi':
+          return <ListTransaksi />;
+        case 'List Transaksi Rutin':
+          return <ListTransaksiRutin />;
+        case 'Bukti Setor':
+          return <BuktiSetor />;
+        case 'Analisa Donatur':
+          return <AnalisaDonatur />;
+        case 'Analisa Transaksi':
+          return <AnalisaTransaksi />;
+        case 'Dashboard Transaksi':
+          return <DashboardTransaksi />;
+        case 'Report Transaksi':
+          return <ReportTransaksi />;
+        case 'Transaksi Funnel':
+          return <TransaksiFunnel />;
+        case 'Analisis Salur':
+          return <AnalisisSalur />;
+        case 'Analisis PM':
+          return <AnalisisPM />;
+        case 'Himpun Vs Salur':
+          return <HimpunVsSalur />;
+        case 'Dashboard Penghimpunan':
+          return <DashboardPenghimpunan />;
         default:
           return <ComingSoon title={activeMenu} />;
       }
