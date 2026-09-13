@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
-  RefreshCw, Plus, RotateCcw, Trash2, Check, X, MessageSquare, User, UserPlus, Eye, EyeOff
+  RefreshCw, Plus, RotateCcw, Trash2, Check, X, MessageSquare, User, UserPlus, Eye, EyeOff,
+  Wallet, ClipboardList, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { OFFICES } from '../utils/finsCoaStore';
 import { INITIAL_REKENING_BANK } from '../utils/finsSettingsStore';
@@ -46,20 +47,66 @@ const emptyDraftLine = (namaDonatur) => ({
 });
 const emptyQuickAdd = () => ({ nama: '', hp: '', email: '' });
 
+const STEPS = [
+  { key: 'donatur', label: 'Pilih Donatur', icon: User },
+  { key: 'transaksi', label: 'Info Transaksi', icon: Wallet },
+  { key: 'detail', label: 'Detail & Kirim', icon: ClipboardList },
+];
+
 const Field = ({ label, children }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-    <label style={{ width: '130px', flexShrink: 0, fontSize: '0.82rem', color: 'var(--text-primary)' }}>{label} :</label>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+    <label style={{ width: '150px', flexShrink: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{label}</label>
     <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
   </div>
 );
 
-// Self-contained donor+transaction entry form. Renders its own colored
-// header bar + footer, so it can be dropped straight into a wide modal (see
+const Stepper = ({ current, onJump }) => (
+  <div style={{ display: 'flex', alignItems: 'center', padding: '18px 20px', flexShrink: 0, background: '#ffffff', borderBottom: '1px solid #fce7f3' }}>
+    {STEPS.map((s, i) => {
+      const Icon = s.icon;
+      const isActive = i === current;
+      const isDone = i < current;
+      return (
+        <React.Fragment key={s.key}>
+          <button
+            type="button"
+            onClick={() => onJump(i)}
+            style={{
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+              background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: 0,
+            }}
+          >
+            <div style={{
+              width: '38px', height: '38px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: isActive ? 'var(--primary-color)' : isDone ? '#fbcfe8' : '#f1f5f9',
+              color: isActive ? '#ffffff' : isDone ? '#be185d' : '#94a3b8',
+              boxShadow: isActive ? '0 4px 10px -3px rgba(219, 39, 119, 0.6)' : 'none',
+              fontWeight: 700, transition: 'all 0.2s',
+            }}>
+              {isDone ? <Check size={17} /> : <Icon size={17} />}
+            </div>
+            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: isActive ? 'var(--primary-color)' : '#94a3b8', whiteSpace: 'nowrap' }}>
+              {s.label}
+            </span>
+          </button>
+          {i < STEPS.length - 1 && (
+            <div style={{ flex: 1, height: '2px', background: i < current ? '#fbcfe8' : '#f1f5f9', margin: '0 10px 20px' }} />
+          )}
+        </React.Fragment>
+      );
+    })}
+  </div>
+);
+
+// Self-contained donor+transaction entry form, redone as a step wizard
+// (Pilih Donatur -> Info Transaksi -> Detail & Kirim) instead of one wide
+// two-column page, so it can be dropped straight into a wide modal (see
 // ListTransaksi.jsx "Tambah Transaksi") without any extra chrome. Builds a
 // full transaction record per line item matching crmTransaksiStore's
 // INITIAL_TRANSAKSI shape on Save, so new rows display correctly in every
 // list column (not just id/nama).
 const EntryTransaksiForm = ({ onSave, onCancel }) => {
+  const [step, setStep] = useState(0);
   const [donaturList, setDonaturList] = useState(INITIAL_DONATUR);
   const [header, setHeader] = useState(emptyHeader());
   const [draftLine, setDraftLine] = useState(emptyDraftLine(''));
@@ -162,7 +209,7 @@ const EntryTransaksiForm = ({ onSave, onCancel }) => {
   };
 
   const handleSave = () => {
-    if (!header.donaturId) { alert('Pilih donatur terlebih dahulu.'); return; }
+    if (!header.donaturId) { alert('Pilih donatur terlebih dahulu.'); setStep(0); return; }
     if (lines.length === 0) { alert('Tambahkan minimal satu baris Detail Transaksi.'); return; }
     const tglTransaksi = header.tanggal.replace('T', ' ') + ':00';
     const kantorTransaksi = OFFICES.find(o => o.id === header.kantorTransaksiId)?.nama || '';
@@ -189,28 +236,55 @@ const EntryTransaksiForm = ({ onSave, onCancel }) => {
     onSave?.(newTransaksi, channels);
   };
 
+  const isLastStep = step === STEPS.length - 1;
+  const goNext = () => {
+    if (step === 0 && !header.donaturId) { alert('Pilih donatur terlebih dahulu.'); return; }
+    setStep(s => Math.min(STEPS.length - 1, s + 1));
+  };
+  const goBack = () => setStep(s => Math.max(0, s - 1));
+
   return (
     <>
-      <div style={{ background: 'var(--primary-color)', color: 'white', padding: '12px 20px', fontWeight: 700, flexShrink: 0 }}>
+      <div style={{
+        background: 'linear-gradient(120deg, #831843 0%, #db2777 60%, #f472b6 100%)',
+        color: 'white', flexShrink: 0, padding: '16px 20px', fontWeight: 700, fontSize: '1.05rem',
+      }}>
         Entry Transaksi Donasi
       </div>
-      <div style={{ overflowY: 'auto', flex: 1 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '32px', padding: '24px' }}>
-          {/* --- Informasi Donatur --- */}
-          <div>
-            <h3 style={{ fontSize: '0.95rem', marginBottom: '16px', fontFamily: 'var(--font-heading)' }}>Informasi Donatur</h3>
+      <Stepper current={step} onJump={setStep} />
 
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '0.82rem', color: 'var(--text-primary)', display: 'block', marginBottom: '6px' }}>Nama :</label>
+      <div style={{ overflowY: 'auto', flex: 1, padding: '20px' }}>
+        {step === 0 && (
+          <div>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Nama</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <User size={18} color="#64748b" style={{ flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <SearchableSelect options={donaturOptions} value={header.donaturId} onChange={handleSelectDonatur} placeholder="Cari nama donatur..." />
                 </div>
                 <UserPlus size={18} color="#16a34a" style={{ cursor: 'pointer', flexShrink: 0 }} title="Tambah donatur baru" onClick={() => { setQuickAdd(emptyQuickAdd()); setQuickAddOpen(true); }} />
-                <RefreshCw size={16} color="#16a34a" style={{ cursor: 'pointer', flexShrink: 0 }} title="Reset donatur" onClick={() => { setHeader(prev => ({ ...emptyHeader(), viaHimpun: prev.viaHimpun, jenisTransaksi: prev.jenisTransaksi, bank: prev.bank, kantorTransaksiId: prev.kantorTransaksiId })); setDraftLine(emptyDraftLine('')); }} />
+                <RefreshCw size={16} color="#16a34a" style={{ cursor: 'pointer', flexShrink: 0 }} title="Reset donatur" onClick={handleResetForm} />
               </div>
             </div>
+
+            {selectedDonatur && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '12px', background: '#fdf2f8', border: '1px solid #fbcfe8',
+                borderRadius: '10px', padding: '12px 16px', marginBottom: '18px',
+              }}>
+                <div style={{
+                  width: '40px', height: '40px', borderRadius: '50%', background: 'var(--primary-color)', color: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0,
+                }}>
+                  {selectedDonatur.nama.charAt(0).toUpperCase()}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selectedDonatur.nama}</div>
+                  <div style={{ fontSize: '0.78rem', color: '#9d174d' }}>{header.idDonaturDisplay} · {header.kantorDonaturLabel || 'Kantor belum diketahui'}</div>
+                </div>
+              </div>
+            )}
 
             <Field label="Jenis Donatur">
               <select className="form-select" value={header.jenisDonatur} onChange={e => setHeader(prev => ({ ...prev, jenisDonatur: e.target.value }))}>
@@ -220,37 +294,39 @@ const EntryTransaksiForm = ({ onSave, onCancel }) => {
             <Field label="ID Donatur">
               <input type="text" className="form-input" disabled value={header.idDonaturDisplay} />
             </Field>
-            <div style={{ marginBottom: '12px' }}>
-              <label style={{ fontSize: '0.82rem', display: 'block', marginBottom: '4px' }}>
-                HP : <span style={{ color: 'var(--danger-color)', fontSize: '0.72rem' }}>Kode Indonesia -&gt; 62</span>
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>
+                HP <span style={{ color: 'var(--danger-color)', fontSize: '0.72rem' }}>Kode Indonesia -&gt; 62</span>
               </label>
               <input type="text" className="form-input" value={header.hp} onChange={e => setHeader(prev => ({ ...prev, hp: e.target.value }))} />
             </div>
             <Field label="Email">
               <input type="email" className="form-input" value={header.email} onChange={e => setHeader(prev => ({ ...prev, email: e.target.value }))} />
             </Field>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '12px' }}>
-              <label style={{ width: '130px', flexShrink: 0, fontSize: '0.82rem', paddingTop: '7px' }}>Alamat :</label>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '14px' }}>
+              <label style={{ width: '150px', flexShrink: 0, fontSize: '0.82rem', color: 'var(--text-secondary)', paddingTop: '7px' }}>Alamat</label>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <textarea className="form-textarea" rows={3} value={header.alamat} onChange={e => setHeader(prev => ({ ...prev, alamat: e.target.value }))} />
               </div>
             </div>
-            <Field label="Provinsi">
-              <input type="text" className="form-input" value={header.provinsi} onChange={e => setHeader(prev => ({ ...prev, provinsi: e.target.value }))} />
-            </Field>
-            <Field label="Kota/Kab">
-              <input type="text" className="form-input" placeholder="mis. Bandung" value={header.kotaKab} onChange={e => setHeader(prev => ({ ...prev, kotaKab: e.target.value }))} />
-            </Field>
-            <Field label="Kecamatan">
-              <input type="text" className="form-input" value={header.kecamatan} onChange={e => setHeader(prev => ({ ...prev, kecamatan: e.target.value }))} />
-            </Field>
-            <Field label="Kelurahan/Desa">
-              <input type="text" className="form-input" value={header.kelurahan} onChange={e => setHeader(prev => ({ ...prev, kelurahan: e.target.value }))} />
-            </Field>
-            <div style={{ marginBottom: '12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 20px' }}>
+              <Field label="Provinsi">
+                <input type="text" className="form-input" value={header.provinsi} onChange={e => setHeader(prev => ({ ...prev, provinsi: e.target.value }))} />
+              </Field>
+              <Field label="Kota/Kab">
+                <input type="text" className="form-input" placeholder="mis. Bandung" value={header.kotaKab} onChange={e => setHeader(prev => ({ ...prev, kotaKab: e.target.value }))} />
+              </Field>
+              <Field label="Kecamatan">
+                <input type="text" className="form-input" value={header.kecamatan} onChange={e => setHeader(prev => ({ ...prev, kecamatan: e.target.value }))} />
+              </Field>
+              <Field label="Kelurahan/Desa">
+                <input type="text" className="form-input" value={header.kelurahan} onChange={e => setHeader(prev => ({ ...prev, kelurahan: e.target.value }))} />
+              </Field>
+            </div>
+            <div style={{ marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <label style={{ fontSize: '0.82rem' }}>
-                  Titik Koordinat :{geocoding && <span style={{ color: '#db2777', fontWeight: 400 }}> mencari wilayah...</span>}
+                <label style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                  Titik Koordinat {geocoding && <span style={{ color: '#db2777', fontWeight: 400 }}> mencari wilayah...</span>}
                   {!showMap && typeof header.lat === 'number' && (
                     <span style={{ color: '#94a3b8', fontWeight: 400 }}> {header.lat.toFixed(6)}, {header.lng.toFixed(6)}</span>
                   )}
@@ -279,82 +355,86 @@ const EntryTransaksiForm = ({ onSave, onCancel }) => {
               <input type="text" className="form-input" disabled value={header.kantorDonaturLabel} />
             </Field>
           </div>
+        )}
 
-          {/* --- Informasi Transaksi --- */}
+        {step === 1 && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 28px' }}>
+            <Field label="Via Himpun">
+              <select className="form-select" value={header.viaHimpun} onChange={e => setHeader(prev => ({ ...prev, viaHimpun: e.target.value }))}>
+                {VIA_HIMPUN_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Field>
+            <Field label="Kantor Transaksi">
+              <SearchableSelect options={officeOptions} value={header.kantorTransaksiId} onChange={val => setHeader(prev => ({ ...prev, kantorTransaksiId: val }))} />
+            </Field>
+
+            <Field label="Jenis Transaksi">
+              <select className="form-select" value={header.jenisTransaksi} onChange={e => setHeader(prev => ({ ...prev, jenisTransaksi: e.target.value }))}>
+                {JENIS_TRANSAKSI_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </Field>
+            <Field label="Tgl Transaksi">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input type="datetime-local" className="form-input" disabled={!header.backDate} value={header.tanggal} onChange={e => setHeader(prev => ({ ...prev, tanggal: e.target.value }))} />
+                {!header.backDate && (
+                  <a href="#" style={{ color: 'var(--danger-color)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+                    onClick={e => { e.preventDefault(); setHeader(prev => ({ ...prev, backDate: true })); }}>
+                    Back Date
+                  </a>
+                )}
+              </div>
+            </Field>
+
+            {header.jenisTransaksi === 'Bank' && (
+              <Field label="Bank">
+                <SearchableSelect options={bankOptions} value={header.bank} onChange={val => setHeader(prev => ({ ...prev, bank: val }))} placeholder="Pilih rekening bank" />
+              </Field>
+            )}
+            <Field label="User Insert">
+              <input type="text" className="form-input" disabled value={CURRENT_USER.username} />
+            </Field>
+          </div>
+        )}
+
+        {step === 2 && (
           <div>
-            <h3 style={{ fontSize: '0.95rem', marginBottom: '16px', fontFamily: 'var(--font-heading)' }}>Informasi Transaksi</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 32px' }}>
-              <Field label="Via Himpun">
-                <select className="form-select" value={header.viaHimpun} onChange={e => setHeader(prev => ({ ...prev, viaHimpun: e.target.value }))}>
-                  {VIA_HIMPUN_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </Field>
-              <Field label="Kantor Transaksi">
-                <SearchableSelect options={officeOptions} value={header.kantorTransaksiId} onChange={val => setHeader(prev => ({ ...prev, kantorTransaksiId: val }))} />
-              </Field>
-
-              <Field label="Jenis Transaksi">
-                <select className="form-select" value={header.jenisTransaksi} onChange={e => setHeader(prev => ({ ...prev, jenisTransaksi: e.target.value }))}>
-                  {JENIS_TRANSAKSI_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </Field>
-              <Field label="Tgl Transaksi">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input type="datetime-local" className="form-input" disabled={!header.backDate} value={header.tanggal} onChange={e => setHeader(prev => ({ ...prev, tanggal: e.target.value }))} />
-                  {!header.backDate && (
-                    <a href="#" style={{ color: 'var(--danger-color)', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
-                      onClick={e => { e.preventDefault(); setHeader(prev => ({ ...prev, backDate: true })); }}>
-                      Back Date
-                    </a>
-                  )}
+            <div style={{
+              background: '#fdf2f8', border: '1px solid #fbcfe8', borderRadius: '12px', padding: '18px', marginBottom: '18px',
+            }}>
+              <div style={{ fontWeight: 700, marginBottom: '14px', color: '#9d174d' }}>Detail Transaksi {header.jenisTransaksi}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.6fr 1fr 1fr 1.6fr 1fr auto', gap: '10px', alignItems: 'end' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Program :</label>
+                  <SearchableSelect options={programOptions} value={draftLine.program} onChange={val => setDraftLine(prev => ({ ...prev, program: val }))} />
                 </div>
-              </Field>
-
-              {header.jenisTransaksi === 'Bank' && (
-                <Field label="Bank">
-                  <SearchableSelect options={bankOptions} value={header.bank} onChange={val => setHeader(prev => ({ ...prev, bank: val }))} placeholder="Pilih rekening bank" />
-                </Field>
-              )}
-              <Field label="User Insert">
-                <input type="text" className="form-input" disabled value={CURRENT_USER.username} />
-              </Field>
-            </div>
-
-            <h3 style={{ fontSize: '0.95rem', margin: '20px 0 14px', fontFamily: 'var(--font-heading)' }}>
-              Detail Transaksi {header.jenisTransaksi}
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.6fr 1fr 1fr 1.6fr 1fr auto', gap: '10px', alignItems: 'end' }}>
-              <div>
-                <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Program :</label>
-                <SearchableSelect options={programOptions} value={draftLine.program} onChange={val => setDraftLine(prev => ({ ...prev, program: val }))} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Qty :</label>
-                <input type="number" min="1" className="form-input" value={draftLine.qty} onChange={e => setDraftLine(prev => ({ ...prev, qty: e.target.value }))} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>@Nominal :</label>
-                <input type="number" min="0" className="form-input" placeholder="0,00" value={draftLine.nominal} onChange={e => setDraftLine(prev => ({ ...prev, nominal: e.target.value }))} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Total [IDR] :</label>
-                <input type="text" className="form-input" disabled value={fmt(totalDraft)} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Keterangan :</label>
-                <input type="text" className="form-input" value={draftLine.keterangan} onChange={e => setDraftLine(prev => ({ ...prev, keterangan: e.target.value }))} />
-              </div>
-              <div>
-                <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Peruntukan :</label>
-                <input type="date" className="form-input" value={draftLine.peruntukan} onChange={e => setDraftLine(prev => ({ ...prev, peruntukan: e.target.value }))} />
-              </div>
-              <div style={{ display: 'flex', gap: '6px', paddingBottom: '2px' }}>
-                <Plus size={22} color="#16a34a" style={{ cursor: 'pointer' }} title="Tambah baris" onClick={addLine} />
-                <RotateCcw size={20} color="#16a34a" style={{ cursor: 'pointer' }} title="Reset baris" onClick={resetDraftLine} />
+                <div>
+                  <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Qty :</label>
+                  <input type="number" min="1" className="form-input" value={draftLine.qty} onChange={e => setDraftLine(prev => ({ ...prev, qty: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>@Nominal :</label>
+                  <input type="number" min="0" className="form-input" placeholder="0,00" value={draftLine.nominal} onChange={e => setDraftLine(prev => ({ ...prev, nominal: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Total [IDR] :</label>
+                  <input type="text" className="form-input" disabled value={fmt(totalDraft)} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Keterangan :</label>
+                  <input type="text" className="form-input" value={draftLine.keterangan} onChange={e => setDraftLine(prev => ({ ...prev, keterangan: e.target.value }))} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', display: 'block', marginBottom: '4px' }}>Peruntukan :</label>
+                  <input type="date" className="form-input" value={draftLine.peruntukan} onChange={e => setDraftLine(prev => ({ ...prev, peruntukan: e.target.value }))} />
+                </div>
+                <div style={{ display: 'flex', gap: '6px', paddingBottom: '2px' }}>
+                  <Plus size={22} color="#16a34a" style={{ cursor: 'pointer' }} title="Tambah baris" onClick={addLine} />
+                  <RotateCcw size={20} color="#16a34a" style={{ cursor: 'pointer' }} title="Reset baris" onClick={resetDraftLine} />
+                </div>
               </div>
             </div>
 
-            <div className="data-table-container" style={{ marginTop: '16px' }}>
+            <div className="data-table-container" style={{ marginBottom: '18px' }}>
               <table className="data-table">
                 <thead>
                   <tr>
@@ -396,28 +476,44 @@ const EntryTransaksiForm = ({ onSave, onCancel }) => {
                 )}
               </table>
             </div>
+
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input type="checkbox" checked={sendWhatsapp} onChange={e => setSendWhatsapp(e.target.checked)} /> Send Whatsapp
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input type="checkbox" checked={sendEmail} onChange={e => setSendEmail(e.target.checked)} /> Send Email
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                <input type="checkbox" checked={sendSms} onChange={e => setSendSms(e.target.checked)} /> Send SMS
+              </label>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div style={{
-        display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '16px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px',
         padding: '16px 24px', borderTop: '1px solid var(--border-color)', background: '#f8fafc', flexWrap: 'wrap', flexShrink: 0,
       }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
-          <input type="checkbox" checked={sendWhatsapp} onChange={e => setSendWhatsapp(e.target.checked)} /> Send Whatsapp
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
-          <input type="checkbox" checked={sendEmail} onChange={e => setSendEmail(e.target.checked)} /> Send Email
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
-          <input type="checkbox" checked={sendSms} onChange={e => setSendSms(e.target.checked)} /> Send SMS
-        </label>
-        <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={handlePreviewSms}>
-          <MessageSquare size={16} /> Preview SMS
-        </button>
-        <button type="button" className="btn btn-success" onClick={handleSave}><Check size={16} /> Save</button>
-        <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={onCancel}><X size={16} /> Cancel</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={onCancel}><X size={16} /> Cancel</button>
+          {step > 0 && (
+            <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={goBack}><ChevronLeft size={16} /> Kembali</button>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {isLastStep && (
+            <button type="button" className="btn" style={{ background: 'white', border: '1px solid #e2e8f0' }} onClick={handlePreviewSms}>
+              <MessageSquare size={16} /> Preview SMS
+            </button>
+          )}
+          {isLastStep ? (
+            <button type="button" className="btn btn-success" onClick={handleSave}><Check size={16} /> Save</button>
+          ) : (
+            <button type="button" className="btn btn-primary" onClick={goNext}>Lanjut <ChevronRight size={16} /></button>
+          )}
+        </div>
       </div>
 
       {quickAddOpen && (

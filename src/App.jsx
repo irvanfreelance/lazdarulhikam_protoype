@@ -27,12 +27,9 @@ import KampanyeList from './pages/KampanyeList';
 import ListDonatur from './pages/ListDonatur';
 import VerifikasiDonatur from './pages/VerifikasiDonatur';
 import ListTransaksi from './pages/ListTransaksi';
-import ListTransaksiRutin from './pages/ListTransaksiRutin';
 import BuktiSetor from './pages/BuktiSetor';
 import AnalisaDonatur from './pages/AnalisaDonatur';
 import AnalisaTransaksi from './pages/AnalisaTransaksi';
-import DashboardTransaksi from './pages/DashboardTransaksi';
-import ReportTransaksi from './pages/ReportTransaksi';
 import TransaksiFunnel from './pages/TransaksiFunnel';
 import AnalisisSalur from './pages/AnalisisSalur';
 import AnalisisPM from './pages/AnalisisPM';
@@ -289,18 +286,12 @@ function App() {
           return <VerifikasiDonatur />;
         case 'List Transaksi':
           return <ListTransaksi />;
-        case 'List Transaksi Rutin':
-          return <ListTransaksiRutin />;
         case 'Bukti Setor':
           return <BuktiSetor />;
         case 'Analisa Donatur':
           return <AnalisaDonatur />;
         case 'Analisa Transaksi':
           return <AnalisaTransaksi />;
-        case 'Dashboard Transaksi':
-          return <DashboardTransaksi />;
-        case 'Report Transaksi':
-          return <ReportTransaksi />;
         case 'Transaksi Funnel':
           return <TransaksiFunnel />;
         case 'Analisis Salur':

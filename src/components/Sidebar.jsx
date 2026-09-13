@@ -131,15 +131,12 @@ const MODULE_GROUPS = {
     ]},
     { category: 'Transaksi', items: [
       ['List Transaksi', Repeat],
-      ['List Transaksi Rutin', RefreshCw],
       ['Bukti Setor', Receipt],
       ['List Transaksi Qurban', Gift]
     ]},
     { category: 'Report Management', items: [
       ['Analisa Donatur', PieChart],
       ['Analisa Transaksi', BarChart3],
-      ['Dashboard Transaksi', LayoutDashboard],
-      ['Report Transaksi', FileBarChart],
       ['Transaksi Funnel', Filter],
       ['Analisis Salur', TrendingDown],
       ['Analisis PM', Target],
