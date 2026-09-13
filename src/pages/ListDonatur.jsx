@@ -770,7 +770,7 @@ const ListDonatur = () => {
 
       {isAddOpen && (
         <div className="modal-backdrop" onClick={closeAdd}>
-          <div className="modal-content" style={{ maxWidth: '1200px' }} onClick={e => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: '820px' }} onClick={e => e.stopPropagation()}>
             <EntryDonaturForm donaturList={donaturList} onSave={handleAddDonatur} onCancel={closeAdd} />
           </div>
         </div>

@@ -1385,5 +1385,128 @@ body {
   z-index: 200;
 }
 
+/* ===================================================================
+   CRM module — bold "modern card dashboard" redesign.
+   Scoped to .theme-crm only, so other modules (FINS, HCM, Akuntansi...)
+   keep their current look untouched.
+   =================================================================== */
+.theme-crm .content-area {
+  background: linear-gradient(180deg, #fdf2f8 0%, var(--bg-main) 260px);
+}
+
+.theme-crm .page-header {
+  background: linear-gradient(120deg, #831843 0%, #db2777 60%, #f472b6 100%);
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 28px;
+  box-shadow: 0 12px 24px -12px rgba(157, 23, 77, 0.45);
+  align-items: center;
+}
+
+.theme-crm .page-title h1 {
+  color: #ffffff;
+  font-size: 1.65rem;
+}
+
+.theme-crm .page-title h1 svg {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.theme-crm .page-title p {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.theme-crm .page-header .btn {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(2px);
+}
+.theme-crm .page-header .btn:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+.theme-crm .page-header .btn-primary {
+  background: #ffffff !important;
+  color: #be185d !important;
+  border: none !important;
+}
+.theme-crm .page-header .btn-primary:hover {
+  background: #fdf2f8 !important;
+}
+
+.theme-crm .stats-grid {
+  gap: 20px;
+}
+
+.theme-crm .stat-card {
+  border-radius: 18px;
+  border: none;
+  border-left: 5px solid var(--primary-color);
+  box-shadow: 0 8px 20px -12px rgba(15, 23, 42, 0.18);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.theme-crm .stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px -14px rgba(157, 23, 77, 0.35);
+}
+
+.theme-crm .stat-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+}
+
+.theme-crm .stat-value {
+  font-size: 1.7rem;
+}
+
+/* Filter/toolbar rows become a floating rounded panel instead of a bare flex row */
+.theme-crm .filters-row {
+  background: #ffffff;
+  border: 1px solid #fce7f3;
+  border-radius: 16px;
+  padding: 14px 18px;
+  box-shadow: 0 4px 14px -10px rgba(157, 23, 77, 0.25);
+  margin-bottom: 18px;
+}
+
+.theme-crm .filters-row .btn {
+  border-radius: 10px;
+}
+
+.theme-crm .filters-row .btn-primary,
+.theme-crm .filters-row .toggle-switch input:checked + .toggle-slider {
+  background-color: var(--primary-color) !important;
+}
+
+.theme-crm .data-table-container {
+  border-radius: 18px;
+  border: 1px solid #fce7f3;
+  box-shadow: 0 8px 22px -16px rgba(157, 23, 77, 0.25);
+}
+
+.theme-crm .data-table th {
+  background: #fdf2f8;
+  color: #9d174d;
+}
+
+.theme-crm .data-table tbody tr:nth-child(even) {
+  background-color: #fffbfd;
+}
+
+.theme-crm .data-table tbody tr:hover {
+  background-color: #fdf2f8;
+}
+
+.theme-crm .status-badge {
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.theme-crm .modal-content {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
 
 
